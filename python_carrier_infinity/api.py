@@ -29,6 +29,9 @@ class Auth(object):
         )
         xml = ET.fromstring(response)
         access_token_xml = util.get_xml_element(xml, "accessToken")
+        if access_token_xml.text is None:
+            raise Exception("Access token is empty")
+
         return Auth(username, access_token_xml.text)
 
 

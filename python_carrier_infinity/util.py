@@ -1,6 +1,11 @@
 """Utility functions"""
-from xml.etree.ElementTree import tostring as xml_tostring
+import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element
+
+
+def xml_tostring(element: Element) -> str:
+    """Convert an XML element to its string representation"""
+    return ET.tostring(element, encoding="unicode")
 
 
 def get_xml_element(xml: Element, tag: str) -> Element:
