@@ -17,12 +17,13 @@ class System(object):
         self.auth = auth
         self.location = location
 
-    async def status(self) -> str:
+    async def status(self) -> "Status":
         """Fetch current system status"""
         response = await api.request(
             f"/systems/{self.system_id}/status", None, self.auth
         )
-        return response
+        xml = ET.fromstring(response)
+        return Status(xml)
 
 
 async def systems(auth: Auth):
@@ -36,3 +37,33 @@ async def systems(auth: Auth):
             all_systems.append(System(system_xml, loc, auth))
 
     return all_systems
+
+
+class Status(object):
+    """Stores the status of a system"""
+
+    def __init__(self, xml: Element):
+        self.xml = xml
+
+    def __repr__(self) -> str:
+        return ET.tostring(self.xml, encoding="unicode")
+
+    @property
+    def zones(self) -> list["ZoneStatus"]:
+        """Returns the status of all enabled zones"""
+        zones = []
+        for zone_xml in self.xml.iter("zone"):
+            if util.get_xml_element(zone_xml, "enabled").text == "off":
+                continue
+            zones.append(ZoneStatus(zone_xml))
+        return zones
+
+
+class ZoneStatus(object):
+    """Stores the status of a specific zone"""
+
+    def __init__(self, xml: Element):
+        self.xml = xml
+
+    def __repr__(self) -> str:
+        return ET.tostring(self.xml, encoding="unicode")
