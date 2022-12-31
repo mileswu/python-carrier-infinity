@@ -28,11 +28,11 @@ class Auth(object):
             "/users/authenticated", username, data, auth_token=None
         )
         xml = ET.fromstring(response)
-        access_token_xml = util.get_xml_element(xml, "accessToken")
-        if access_token_xml.text is None:
-            raise Exception("Access token is empty")
+        access_token = util.get_xml_element_text(xml, "accessToken")
+        if not access_token:
+            raise Exception("accessToken missing")
 
-        return Auth(username, access_token_xml.text)
+        return Auth(username, access_token)
 
 
 async def request(url: str, data: str | None, auth: Auth) -> str:

@@ -18,6 +18,14 @@ def get_xml_element(xml: Element, tag: str) -> Element:
     return result
 
 
+def get_xml_element_text(xml: Element, tag: str) -> str:
+    element = get_xml_element(xml, tag)
+    if element.text is None:
+        return ""
+    else:
+        return element.text
+
+
 def get_xml_attribute(xml: Element, key: str) -> str:
     """Get an attribute from an XML element"""
     result = xml.get(key)

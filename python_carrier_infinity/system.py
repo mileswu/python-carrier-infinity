@@ -5,6 +5,7 @@ from . import util
 from . import api
 from .api import Auth
 from .location import Location
+from .status import Status
 
 
 class System(object):
@@ -37,33 +38,3 @@ async def systems(auth: Auth):
             all_systems.append(System(system_xml, loc, auth))
 
     return all_systems
-
-
-class Status(object):
-    """Stores the status of a system"""
-
-    def __init__(self, xml: Element):
-        self.xml = xml
-
-    def __repr__(self) -> str:
-        return ET.tostring(self.xml, encoding="unicode")
-
-    @property
-    def zones(self) -> list["ZoneStatus"]:
-        """Returns the status of all enabled zones"""
-        zones = []
-        for zone_xml in self.xml.iter("zone"):
-            if util.get_xml_element(zone_xml, "enabled").text == "off":
-                continue
-            zones.append(ZoneStatus(zone_xml))
-        return zones
-
-
-class ZoneStatus(object):
-    """Stores the status of a specific zone"""
-
-    def __init__(self, xml: Element):
-        self.xml = xml
-
-    def __repr__(self) -> str:
-        return ET.tostring(self.xml, encoding="unicode")
