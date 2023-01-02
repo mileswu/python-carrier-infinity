@@ -57,7 +57,7 @@ class ZoneStatus(object):
     @property
     def fan_speed(self) -> FanSpeed:
         """The current fan speed of the zone"""
-        return FanSpeed[util.get_xml_element_text(self.xml, "rh")]
+        return FanSpeed[util.get_xml_element_text(self.xml, "fan")]
 
     @property
     def target_heating_temperature(self) -> int:
