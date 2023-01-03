@@ -4,6 +4,7 @@ import defusedxml.ElementTree as ET
 from . import util
 from . import api
 from .api import Auth
+from .config import Config
 from .location import Location
 from .status import Status
 
@@ -25,6 +26,14 @@ class System(object):
         )
         xml = ET.fromstring(response)
         return Status(xml)
+
+    async def config(self) -> "Config":
+        """Fetch the current config of the system"""
+        response = await api.request(
+            f"/systems/{self.system_id}/config", None, self.auth
+        )
+        xml = ET.fromstring(response)
+        return Config(xml)
 
 
 async def systems(auth: Auth):
