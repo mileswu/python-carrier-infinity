@@ -5,7 +5,7 @@ from . import username, password
 
 
 @pytest.mark.asyncio
-async def test_login():
+async def test_login() -> None:
     """Test valid and invalid logins"""
     await Auth.login(username, password)
 

@@ -36,7 +36,7 @@ class System(object):
         return Config(xml)
 
 
-async def systems(auth: Auth):
+async def systems(auth: Auth) -> list[System]:
     """Fetch list of all systems"""
     response = await api.request(f"/users/{auth.username}/locations", None, auth)
     all_systems = []
