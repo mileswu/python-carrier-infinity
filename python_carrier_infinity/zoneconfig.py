@@ -25,7 +25,7 @@ class ZoneConfig(object):
     def hold_activity(self) -> Activity | None:
         """The currently held activity"""
         if util.get_xml_element_text(self.xml, "hold") == "on":
-            return Activity[util.get_xml_element_text(self.xml, "holdActivity")]
+            return Activity(util.get_xml_element_text(self.xml, "holdActivity"))
         else:
             return None
 
@@ -34,6 +34,6 @@ class ZoneConfig(object):
         """The configs for each activity"""
         activities = {}
         for activity_xml in self.xml.iter("activity"):
-            activity = Activity[util.get_xml_attribute(activity_xml, "id")]
+            activity = Activity(util.get_xml_attribute(activity_xml, "id"))
             activities[activity] = ActivityConfig(activity_xml)
         return activities

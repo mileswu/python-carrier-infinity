@@ -18,12 +18,12 @@ class ActivityConfig(object):
     @property
     def activity(self) -> Activity:
         """The associated activity"""
-        return Activity[util.get_xml_attribute(self.xml, "id")]
+        return Activity(util.get_xml_attribute(self.xml, "id"))
 
     @property
     def fan_speed(self) -> FanSpeed:
         """The fan speed"""
-        return FanSpeed[util.get_xml_element_text(self.xml, "fan")]
+        return FanSpeed(util.get_xml_element_text(self.xml, "fan"))
 
     @property
     def target_heating_temperature(self) -> int:

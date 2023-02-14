@@ -39,9 +39,9 @@ class Config(object):
     @property
     def temperature_units(self) -> TemperatureUnits:
         """The temperature units used"""
-        return TemperatureUnits[util.get_xml_element_text(self.xml, "cfgem")]
+        return TemperatureUnits(util.get_xml_element_text(self.xml, "cfgem"))
 
     @property
     def mode(self) -> Mode:
         """The HVAC mode"""
-        return Mode[util.get_xml_element_text(self.xml, "mode")]
+        return Mode(util.get_xml_element_text(self.xml, "mode"))

@@ -41,7 +41,7 @@ class ZoneStatus(object):
     @property
     def current_activity(self) -> Activity:
         """The currently set activity of the zone"""
-        return Activity[util.get_xml_element_text(self.xml, "currentActivity")]
+        return Activity(util.get_xml_element_text(self.xml, "currentActivity"))
 
     @property
     def current_temperature(self) -> int:
@@ -56,7 +56,7 @@ class ZoneStatus(object):
     @property
     def fan_speed(self) -> FanSpeed:
         """The current fan speed of the zone"""
-        return FanSpeed[util.get_xml_element_text(self.xml, "fan")]
+        return FanSpeed(util.get_xml_element_text(self.xml, "fan"))
 
     @property
     def target_heating_temperature(self) -> int:

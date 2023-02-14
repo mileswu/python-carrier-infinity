@@ -46,7 +46,7 @@ class Status(object):
     @property
     def temperature_units(self) -> TemperatureUnits:
         """The temperature units used"""
-        return TemperatureUnits[util.get_xml_element_text(self.xml, "cfgem")]
+        return TemperatureUnits(util.get_xml_element_text(self.xml, "cfgem"))
 
     @property
     def current_operation(self) -> str:
