@@ -33,7 +33,9 @@ class ZoneConfig(object):
     def activities(self) -> dict[Activity, ActivityConfig]:
         """The configs for each activity"""
         activities = {}
-        for activity_xml in self.xml.iter("activity"):
+        for activity_xml in util.get_xml_element(self.xml, "activities").iter(
+            "activity"
+        ):
             activity = Activity(util.get_xml_attribute(activity_xml, "id"))
             activities[activity] = ActivityConfig(activity_xml)
         return activities
