@@ -38,13 +38,13 @@ class Auth(object):
         )
 
         parsed_json = json.loads(response)
-        print(parsed_json)
+        # print(parsed_json)
 
         if "sessionToken" not in parsed_json:
             raise Exception("sessionToken missing")
 
         session_token = parsed_json["sessionToken"]
-        print(session_token)
+        # print(session_token)
 
         """Step 2: Get short-lived code from redirect location param via code challenge & session token"""
         # https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/#create-the-proof-key-for-code-exchange
@@ -77,7 +77,7 @@ class Auth(object):
             "state": state
         }
 
-        print(params)
+        # print(params)
 
         data = None
         headers = {"Content-Type": "application/x-www-form-urlencoded", "Accept": 'application/json'}
@@ -89,8 +89,8 @@ class Auth(object):
         # extract code from query param of the redirect location
         code = redirect_location.replace(redirect_uri + '?', '').split('&')[0].split('=')[1]
 
-        print(redirect_location)
-        print(code)
+        # print(redirect_location)
+        # print(code)
 
         """Step 3: Use short-lived code to get access token for graphql operations"""
 
@@ -104,18 +104,16 @@ class Auth(object):
         headers = {"Content-Type": "application/x-www-form-urlencoded", "Accept": 'application/json'}
         params = None
 
-        print(data)
+        # print(data)
 
         response = json.loads(await _request("/oauth2/default/v1/token", username, data, auth_token=None, headers=headers, base_url="https://sso.carrier.com"))
-        print(response)
+        # print(response)
 
         if "access_token" not in response:
             raise Exception("Access token was not found / granted")
 
         access_token = response["access_token"]
-        print(access_token)
-
-        raise Exception("testing stuff yknow")
+        # print(access_token)
 
         return Auth(username, "placeholder", session_token, access_token)
 
@@ -124,11 +122,28 @@ async def request(url: str, data: str | None, auth: Auth, headers: dict | None =
     """Make a request to the API."""
     return await _request(url, auth.username, data, auth.token, headers)
 
-
-"""OpenAPI Specs: https://openapi.ing.carrier.com/docs"""
-API_URL_BASE = "https://www.myinfinitytouch.carrier.com"
+API_URL_BASE = "https://dataservice.infinity.iot.carrier.com"
 CLIENT_KEY = "8j30j19aj103911h"
 CLIENT_SECRET = "0f5ur7d89sjv8d45"
+
+async def gql_request(query: dict, auth: Auth):
+    """GraphQL request wrapper"""
+    method = "POST"
+    headers = {
+        "Authorization": 'Bearer ' + auth.access_token,
+        "Content-Type": 'application/json'
+    }
+    url = API_URL_BASE + '/graphql'
+    data = json.dumps(query)
+
+    # print("Making gql request...")
+    async with aiohttp.ClientSession() as session:
+        async with session.request(method, url, headers=headers, data=data) as response:
+            if response.status == 302:
+                return response.headers["location"]
+            response_text = await response.text()
+            # print(response_text)
+            return json.loads(response_text)
 
 
 async def _request(
@@ -154,7 +169,7 @@ async def _request(
         if "Content-Type" not in headers:
             headers["Content-Type"] = "application/x-www-form-urlencoded"
         body = data
-        print("POST")
+        # print("POST")
     else:
         method = "GET"
         body = None
