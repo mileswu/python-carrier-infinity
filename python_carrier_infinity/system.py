@@ -29,11 +29,17 @@ class System(object):
 
     async def status(self) -> "Status":
         """Fetch current system status"""
-        response = await api.request(
-            f"/systems/{self.system_id}/status", None, self.auth
-        )
-        xml = ET.fromstring(response)
-        return Status(xml)
+        response = await api.gql_request(get_system_status_query(self.system_id), self.auth)
+        # print(json.dumps(response))
+        # raise Exception("stopppping")
+
+        if "data" not in response:
+            raise Exception("No top-level data field in gql get status response")
+        
+        if "infinityStatus" not in response["data"]:
+            raise Exception("No infinityStatus field in get status response data")
+
+        return Status(response["data"]["infinityStatus"])
 
     async def config(self) -> "Config":
         """Fetch the current config of the system"""
