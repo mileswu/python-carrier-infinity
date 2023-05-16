@@ -106,6 +106,7 @@ query = """query getInfinityConfig($serial: String!) {
       enabled
       hold
       holdActivity
+      otmr
       activities {
         id
         zoneId
