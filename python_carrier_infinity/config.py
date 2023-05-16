@@ -5,6 +5,7 @@ import defusedxml.ElementTree as ET
 from . import util
 from .status import TemperatureUnits
 from .zoneconfig import ZoneConfig
+import json
 
 
 class Mode(Enum):
@@ -20,28 +21,32 @@ class Mode(Enum):
 class Config(object):
     """Represents the config of a system"""
 
-    def __init__(self, xml: Element):
-        self.xml = xml
+    def __init__(self, data: dict):
+        self.data = data
 
-    def __repr__(self) -> str:
-        return ET.tostring(self.xml, encoding="unicode")
+    def __str__(self) -> str:
+        return f"""===System Config Information===
+        Temperature unit: {self.temperature_units}
+        HVAC mode: {self.mode}
+        Zone configs:
+            {("************************").join([str(zone) for zone in self.zones])}"""
 
     @property
     def zones(self) -> list["ZoneConfig"]:
         """The config of all enabled zones"""
         zones = []
-        for zone_xml in self.xml.iter("zone"):
-            if util.get_xml_element_text(zone_xml, "enabled") == "off":
+        for zone in self.data["zones"]:
+            if zone["enabled"] == "off":
                 continue
-            zones.append(ZoneConfig(zone_xml))
+            zones.append(ZoneConfig(zone))
         return zones
 
     @property
     def temperature_units(self) -> TemperatureUnits:
         """The temperature units used"""
-        return TemperatureUnits(util.get_xml_element_text(self.xml, "cfgem"))
+        return TemperatureUnits(self.data["cfgem"])
 
     @property
     def mode(self) -> Mode:
         """The HVAC mode"""
-        return Mode(util.get_xml_element_text(self.xml, "mode"))
+        return Mode(self.data["mode"])

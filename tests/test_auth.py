@@ -23,7 +23,15 @@ async def test_user_systems() -> None:
 
 @pytest.mark.asyncio
 async def test_get_config() -> None:
-    """Test getting user's systems information"""
+    """Test getting system's config"""
     auth = await Auth.login(username, password, client_id)
 
-    await systems(auth)
+    all_systems = await systems(auth)
+
+    system = all_systems[1]
+
+    config = await system.config()
+
+    print("System: " + system.name)
+    print(config)
+    raise Exception("testing config")

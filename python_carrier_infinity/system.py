@@ -7,7 +7,8 @@ from .api import Auth
 from .config import Config
 from .location import Location
 from .status import Status
-from .gql_schemas import get_user_query
+from .gql_schemas import get_user_query, get_system_config_query, get_system_status_query
+import json
 
 
 class System(object):
@@ -36,11 +37,17 @@ class System(object):
 
     async def config(self) -> "Config":
         """Fetch the current config of the system"""
-        response = await api.request(
-            f"/systems/{self.system_id}/config", None, self.auth
-        )
-        xml = ET.fromstring(response)
-        return Config(xml)
+        response = await api.gql_request(get_system_config_query(self.system_id), self.auth)
+        # print(json.dumps(response))
+        # raise Exception("stopppping")
+
+        if "data" not in response:
+            raise Exception("No top-level data field in gql get config response")
+        
+        if "infinityConfig" not in response["data"]:
+            raise Exception("No infinityConfig field in get config response data")
+
+        return Config(response["data"]["infinityConfig"])
 
 class User(object):
     """Represents a Carrier Infinity user"""
@@ -52,6 +59,7 @@ class User(object):
     async def user(auth: Auth) -> "User":
         """Fetch user information"""
         response = await api.gql_request(get_user_query(auth.username), auth)
+        # print(response)
 
         if "data" not in response:
             raise Exception("GQL response does not contain top-level data field")
@@ -78,9 +86,9 @@ async def systems(auth: Auth) -> list[System]:
     """Fetch list of all systems corresponding to user"""
     user = await User.user(auth)
 
-    all_systems = user.get_all_systems(auth)
-    for system in all_systems:
-        print(system)
+    # all_systems = user.get_all_systems(auth)
+    # for system in all_systems:
+    #     print(system)
     
     # raise Exception("test")
 
