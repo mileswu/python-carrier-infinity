@@ -7,13 +7,20 @@ from . import util
 class Location(object):
     """Represents a location"""
 
-    def __init__(self, xml: Element):
-        link_xml = util.get_xml_element(xml, "{http://www.w3.org/2005/Atom}link")
-        self.location_id = util.get_xml_attribute(link_xml, "href").split("/")[-1]
-        self.name = util.get_xml_element_text(xml, "name")
-        self.street1 = util.get_xml_element_text(xml, "street1")
-        self.street2 = util.get_xml_element_text(xml, "street2")
-        self.city = util.get_xml_element_text(xml, "city")
-        self.state = util.get_xml_element_text(xml, "state")
-        self.country = util.get_xml_element_text(xml, "country")
-        self.postal = util.get_xml_element_text(xml, "postal")
+    def __init__(self, data: dict):
+        self.location_id = data["locationId"]
+        self.name = data["name"]
+        self.street1 = data["street1"]
+        self.street2 = data["street2"]
+        self.city = data["city"]
+        self.state = data["state"]
+        self.country = data["country"]
+        self.postal = data["postal"]
+
+    # for testing
+    def __str__(self):
+        return f"""
+            Location Id: {self.location_id}
+            Name: {self.name}
+            Postal: {self.postal}
+        """

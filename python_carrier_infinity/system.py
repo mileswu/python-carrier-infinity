@@ -7,17 +7,24 @@ from .api import Auth
 from .config import Config
 from .location import Location
 from .status import Status
+from .gql_schemas import get_user_query
 
 
 class System(object):
     """Represents a Carrier Infinity system"""
 
-    def __init__(self, xml: Element, location: Location, auth: api.Auth):
-        link_xml = util.get_xml_element(xml, "{http://www.w3.org/2005/Atom}link")
-        self.system_id = util.get_xml_attribute(link_xml, "href").split("/")[-1]
-        self.name = util.get_xml_attribute(link_xml, "title")
+    def __init__(self, data: dict, location: Location, auth: api.Auth):
+        self.system_id = data["serial"]
+        self.name = data["name"]
         self.auth = auth
         self.location = location
+
+    # for testing
+    def __str__(self) -> str:
+        return f"""=======================================
+        System Id: {self.system_id}
+        Name: {self.name}
+        Location: {str(self.location)}"""
 
     async def status(self) -> "Status":
         """Fetch current system status"""
@@ -35,15 +42,46 @@ class System(object):
         xml = ET.fromstring(response)
         return Config(xml)
 
+class User(object):
+    """Represents a Carrier Infinity user"""
+
+    def __init__(self, data):
+        self.data = data
+        self.all_systems = None
+
+    async def user(auth: Auth) -> "User":
+        """Fetch user information"""
+        response = await api.gql_request(get_user_query(auth.username), auth)
+
+        if "data" not in response:
+            raise Exception("GQL response does not contain top-level data field")
+        
+        if "user" not in response["data"]:
+            raise Exception("GQL response data did not contain user field")
+
+        return User(response["data"]["user"])
+
+    def get_all_systems(self, auth) -> list[System]:
+        if self.all_systems != None:
+            return self.all_systems
+
+        all_systems = []
+        for location in self.data["locations"]:
+            loc = Location(location)
+            for system in location["systems"]:
+                all_systems.append(System(system["profile"], loc, auth))
+        
+        self.all_systems = all_systems
+        return self.all_systems
 
 async def systems(auth: Auth) -> list[System]:
-    """Fetch list of all systems"""
-    response = await api.request(f"/users/{auth.username}/locations", None, auth)
-    all_systems = []
-    xml = ET.fromstring(response)
-    for location_xml in xml.iter("location"):
-        loc = Location(location_xml)
-        for system_xml in location_xml.iter("system"):
-            all_systems.append(System(system_xml, loc, auth))
+    """Fetch list of all systems corresponding to user"""
+    user = await User.user(auth)
 
-    return all_systems
+    all_systems = user.get_all_systems(auth)
+    for system in all_systems:
+        print(system)
+    
+    # raise Exception("test")
+
+    return user.get_all_systems(auth)
