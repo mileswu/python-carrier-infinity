@@ -3,3 +3,4 @@
 # SPDX-License-Identifier: MIT
 from .get_user import get_user_query
 from .get_system_status import get_system_status_query
+from .get_system_config import get_system_config_query

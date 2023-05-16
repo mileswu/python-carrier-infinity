@@ -17,7 +17,11 @@ class Auth(object):
         self.username = username
         self.token = token
         self.session_token = session_token
-        self.access_token = access_token
+        self._access_token = access_token
+
+    def get_access_token(self):
+        # TODO: Add foo regarding if token is past expiration time
+        return self._access_token
 
     @classmethod
     async def login(cls, username: str, password: str, client_id: str) -> Auth:
@@ -130,7 +134,7 @@ async def gql_request(query: dict, auth: Auth):
     """GraphQL request wrapper"""
     method = "POST"
     headers = {
-        "Authorization": 'Bearer ' + auth.access_token,
+        "Authorization": 'Bearer ' + auth.get_access_token(),
         "Content-Type": 'application/json'
     }
     url = API_URL_BASE + '/graphql'

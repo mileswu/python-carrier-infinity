@@ -10,32 +10,35 @@ from .zonestatus import Activity
 class ZoneConfig(object):
     """Represents the config of a zone"""
 
-    def __init__(self, xml: Element):
-        self.xml = xml
+    def __init__(self, data: dict):
+        self.data = data
 
-    def __repr__(self) -> str:
-        return ET.tostring(self.xml, encoding="unicode")
+    def __str__(self) -> str:
+        activities = "\n" + ("\n=======================\n").join(["\t\t" + str(activity) + ": " + str(self.activities[activity]) for activity in self.activities])
+        return f"""{self.name} Zone Config:
+            Hold activity: {self.hold_activity}
+            Activities: {activities}
+        """
 
     @property
     def name(self) -> str:
         """The name of the zone"""
-        return util.get_xml_element_text(self.xml, "name")
+        return self.data["name"]
 
     @property
     def hold_activity(self) -> Activity | None:
         """The currently held activity"""
-        if util.get_xml_element_text(self.xml, "hold") == "on":
-            return Activity(util.get_xml_element_text(self.xml, "holdActivity"))
+        if self.data["hold"] == "on":
+            return Activity(self.data["holdActivity"])
         else:
             return None
 
     @property
     def activities(self) -> dict[Activity, ActivityConfig]:
-        """The configs for each activity"""
+        """The configs for each activity type"""
         activities = {}
-        for activity_xml in util.get_xml_element(self.xml, "activities").iter(
-            "activity"
-        ):
-            activity = Activity(util.get_xml_attribute(activity_xml, "id"))
-            activities[activity] = ActivityConfig(activity_xml)
+
+        for activity in self.data["activities"]:
+            activity_type = Activity(activity["type"])
+            activities[activity_type] = ActivityConfig(activity)
         return activities
