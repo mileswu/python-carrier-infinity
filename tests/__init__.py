@@ -4,7 +4,7 @@
 import os.path
 
 try:
-    from .credentials import username, password
+    from .credentials import username, password, client_id
 except ImportError as exc:
     raise Exception(
         "In order to run the tests, you must create a file named 'credentials.py' containing a 'username' and 'password' variable."
