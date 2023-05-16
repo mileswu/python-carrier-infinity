@@ -34,4 +34,23 @@ async def test_get_config() -> None:
 
     print("System: " + system.name)
     print(config)
-    raise Exception("testing config")
+
+    # uncomment below to print out the config
+    # raise Exception("testing config")
+
+@pytest.mark.asyncio
+async def test_get_status() -> None:
+    """Test getting system's status"""
+    auth = await Auth.login(username, password, client_id)
+
+    all_systems = await systems(auth)
+
+    system = all_systems[1]
+
+    status = await system.status()
+
+    print("System: " + system.name)
+    print(status)
+
+    # uncomment below to print out the status
+    # raise Exception("testing status")

@@ -17,51 +17,67 @@ class TemperatureUnits(Enum):
 class Status(object):
     """Stores the status of a system"""
 
-    def __init__(self, xml: Element):
-        self.xml = xml
+    def __init__(self, data: dict):
+        self.data = data
 
-    def __repr__(self) -> str:
-        return ET.tostring(self.xml, encoding="unicode")
+    def __str__(self) -> str:
+        return f"""System Status:
+            Timestamp: {str(self.timestamp)}
+            Mode: {self.mode}
+            Outside temperature: {self.outside_temperature}{self.temperature_units.name}
+            Current operation: {self.current_operation}
+            Current airflow: {self.airflow}
+            Humidifier active: {self.humidifier_active}
+            Zone Statuses:
+                {''.join([str(zone) for zone in self.zones])}
+        """
 
     @property
     def zones(self) -> list["ZoneStatus"]:
         """The status of all enabled zones"""
+        if "zones" not in self.data:
+            raise Exception("No zones are found for current system")
+
         zones = []
-        for zone_xml in self.xml.iter("zone"):
-            if util.get_xml_element_text(zone_xml, "enabled") == "off":
+        for zone in self.data["zones"]:
+            if zone["enabled"] == "off":
                 continue
-            zones.append(ZoneStatus(zone_xml))
+            zones.append(ZoneStatus(zone))
         return zones
 
     @property
     def timestamp(self) -> datetime:
         """The timestamp of the status report"""
-        return datetime.fromisoformat(util.get_xml_element_text(self.xml, "timestamp"))
+        return datetime.fromisoformat(self.data["utcTime"])
+
+    @property
+    def mode(self) -> str:
+        return self.data["mode"]
 
     @property
     def outside_temperature(self) -> int:
         """The outside air temperature"""
-        return int(util.get_xml_element_text(self.xml, "oat"))
+        return int(self.data["oat"])
 
     @property
     def temperature_units(self) -> TemperatureUnits:
         """The temperature units used"""
-        return TemperatureUnits(util.get_xml_element_text(self.xml, "cfgem"))
+        return TemperatureUnits(self.data["cfgem"])
 
     @property
     def current_operation(self) -> str:
-        """The current in progress operation"""
-        return util.get_xml_element_text(self.xml, "opstat")
+        """The current in progress operation for idu - indoor unit?!"""
+        return self.data["idu"]["opstat"]
 
     @property
     def humidifier_active(self) -> bool:
         """The status of the humidifer"""
-        if util.get_xml_element_text(self.xml, "humid") == "on":
+        if self.data["humid"] == "on":
             return True
         else:
             return False
 
     @property
     def airflow(self) -> int:
-        """The current airflow in cfm"""
-        return int(util.get_xml_element_text(self.xml, "cfm"))
+        """The current airflow in cfm for idu - indoor unit?!"""
+        return self.data["idu"]["cfm"]
