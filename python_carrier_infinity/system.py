@@ -7,8 +7,10 @@ from .api import Auth
 from .config import Config
 from .location import Location
 from .status import Status
-from .gql_schemas import get_user_query, get_system_config_query, get_system_status_query
+from .zonestatus import Activity
+from .gql_schemas import get_user_query, get_system_config_query, get_system_status_query, update_zone_config_query
 import json
+import asyncio
 
 
 class System(object):
@@ -19,6 +21,8 @@ class System(object):
         self.name = data["name"]
         self.auth = auth
         self.location = location
+        self.last_fetched_config: Config = None
+        self.last_fetched_status: Status = None
 
     # for testing
     def __str__(self) -> str:
@@ -39,7 +43,9 @@ class System(object):
         if "infinityStatus" not in response["data"]:
             raise Exception("No infinityStatus field in get status response data")
 
-        return Status(response["data"]["infinityStatus"])
+        status = Status(response["data"]["infinityStatus"])
+        self.last_fetched_status = status
+        return status
 
     async def config(self) -> "Config":
         """Fetch the current config of the system"""
@@ -53,7 +59,25 @@ class System(object):
         if "infinityConfig" not in response["data"]:
             raise Exception("No infinityConfig field in get config response data")
 
-        return Config(response["data"]["infinityConfig"])
+        config = Config(response["data"]["infinityConfig"])
+        self.last_fetched_config = config
+        return config
+    
+    async def update_zone_config(self, zone_id: str, hold: str, hold_activity: Activity, otmr: str) -> "Config":
+        """Update the specified zone config"""
+        response = await api.gql_request(update_zone_config_query(self.system_id, zone_id, hold, hold_activity, otmr), self.auth)
+
+        print("Before...")
+        print(self.last_fetched_config)
+
+        """Refresh config information"""
+        print("Sleeping before refetching config...")
+        await asyncio.sleep(5)
+        await self.config()
+        print("After...")
+        print(self.last_fetched_config)
+
+
 
 class User(object):
     """Represents a Carrier Infinity user"""
