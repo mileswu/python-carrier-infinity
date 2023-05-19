@@ -1,5 +1,7 @@
-operation = "getInfinityStatus"
-query_long = """query getInfinityStatus($serial: String!) {
+"""getInfinityStatus GraphQL schema"""
+
+OPERATION = "getInfinityStatus"
+QUERY_FULL = """query getInfinityStatus($serial: String!) {
   infinityStatus(serial: $serial) {
     localTime
     localTimeOffset
@@ -39,7 +41,7 @@ query_long = """query getInfinityStatus($serial: String!) {
   }
 }"""
 
-query = """query getInfinityStatus($serial: String!) {
+QUERY = """query getInfinityStatus($serial: String!) {
   infinityStatus(serial: $serial) {
     utcTime
     cfgem
@@ -68,11 +70,12 @@ query = """query getInfinityStatus($serial: String!) {
     }
   }
 }"""
-def get_system_status_query(system_id):
+
+
+def get_status_query(serial: str) -> dict:
+    """Generate GraphQL query for getInfinityStatus"""
     return {
-        "operationName": operation,
-        "variables": {
-            "serial": system_id
-        },
-        "query": query,
+        "operationName": OPERATION,
+        "variables": {"serial": serial},
+        "query": QUERY,
     }

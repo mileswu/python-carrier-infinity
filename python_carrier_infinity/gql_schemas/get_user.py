@@ -1,5 +1,11 @@
-operation = "getUser"
-query = """query getUser($userName: String!, $appVersion: String, $brand: String, $os: String, $osVersion: String) {
+"""getUser GraphQL schema"""
+OPERATION = "getUser"
+QUERY = """query getUser(
+    $userName: String!,
+    $appVersion: String,
+    $brand: String,
+    $os: String,
+    $osVersion: String) {
   user(
     userName: $userName
     appVersion: $appVersion
@@ -57,9 +63,11 @@ query = """query getUser($userName: String!, $appVersion: String, $brand: String
 }
 """
 
-def get_user_query(username):
+
+def get_user_query(username: str) -> dict:
+    """Generate GraphQL query for getUser"""
     return {
-        "operationName": operation,
+        "operationName": OPERATION,
         "variables": {
             "userName": username,
             "appVersion": "1.6.3-21321",
@@ -67,5 +75,5 @@ def get_user_query(username):
             "os": "ios",
             "osVersion": "16.4.1",
         },
-        "query": query,
+        "query": QUERY,
     }

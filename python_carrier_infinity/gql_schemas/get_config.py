@@ -1,5 +1,7 @@
-operation = "getInfinityConfig"
-query_long = """query getInfinityConfig($serial: String!) {
+"""getInfinityConfig GraphQL schema"""
+
+OPERATION = "getInfinityConfig"
+QUERY_FULL = """query getInfinityConfig($serial: String!) {
   infinityConfig(serial: $serial) {
     etag
     mode
@@ -96,7 +98,7 @@ query_long = """query getInfinityConfig($serial: String!) {
 }
 """
 
-query = """query getInfinityConfig($serial: String!) {
+QUERY = """query getInfinityConfig($serial: String!) {
   infinityConfig(serial: $serial) {
     mode
     cfgem
@@ -121,11 +123,13 @@ query = """query getInfinityConfig($serial: String!) {
 }
 """
 
-def get_system_config_query(system_id):
+
+def get_config_query(serial: str) -> dict:
+    """Generate GraphQL query for getInfinityConfig"""
     return {
-        "operationName": operation,
+        "operationName": OPERATION,
         "variables": {
-            "serial": system_id,
+            "serial": serial,
         },
-        "query": query
+        "query": QUERY,
     }

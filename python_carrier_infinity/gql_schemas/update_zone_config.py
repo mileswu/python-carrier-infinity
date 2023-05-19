@@ -1,21 +1,37 @@
-operation = "updateInfinityZoneConfig"
-query = """mutation updateInfinityZoneConfig($input: InfinityZoneConfigInput!) {
+"""updateInfinityZoneConfig GraphQL schema"""
+from __future__ import annotations
+
+OPERATION = "updateInfinityZoneConfig"
+QUERY = """mutation updateInfinityZoneConfig($input: InfinityZoneConfigInput!) {
   updateInfinityZoneConfig(input: $input) {
     etag
   }
 }"""
 
-def update_zone_config_query(system_id, zone_id, hold, hold_activity, otmr):
+
+def update_zone_config_query(
+    serial: str,
+    zone_id: int,
+    hold_activity: str | None,
+    hold_until: str | None,
+):
+    """Generate GraphQL query for updateInfinityZoneConfig"""
+
+    if hold_activity:
+        hold = "on"
+    else:
+        hold = "off"
+
     return {
-        "operationName": operation,
+        "operationName": OPERATION,
         "variables": {
             "input": {
-                "serial": system_id,
+                "serial": serial,
                 "zoneId": zone_id,
                 "hold": hold,
                 "holdActivity": hold_activity,
-                "otmr": otmr #The time by which the hold expires; None if hold is indefinite
+                "otmr": hold_until,
             },
         },
-        "query": query
+        "query": QUERY,
     }
