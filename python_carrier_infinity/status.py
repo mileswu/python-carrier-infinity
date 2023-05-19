@@ -3,6 +3,7 @@ from datetime import datetime
 from enum import Enum
 from xml.etree.ElementTree import Element
 import defusedxml.ElementTree as ET
+import dateutil
 from . import util
 from .zonestatus import ZoneStatus
 
@@ -48,7 +49,7 @@ class Status(object):
     @property
     def timestamp(self) -> datetime:
         """The timestamp of the status report"""
-        return datetime.fromisoformat(self.data["utcTime"])
+        return dateutil.parser.isoparse(self.data["utcTime"])
 
     @property
     def mode(self) -> str:
