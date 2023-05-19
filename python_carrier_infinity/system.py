@@ -8,7 +8,13 @@ from .config import Config
 from .location import Location
 from .status import Status
 from .zonestatus import Activity
-from .gql_schemas import get_user_query, get_system_config_query, get_system_status_query, update_zone_config_query
+from .gql_schemas import (
+    get_user_query,
+    get_config_query,
+    get_status_query,
+    update_zone_config_query,
+    update_activity_query,
+)
 import json
 import asyncio
 
@@ -33,13 +39,13 @@ class System(object):
 
     async def status(self) -> "Status":
         """Fetch current system status"""
-        response = await api.gql_request(get_system_status_query(self.system_id), self.auth)
+        response = await api.gql_request(get_status_query(self.system_id), self.auth)
         # print(json.dumps(response))
         # raise Exception("stopppping")
 
         if "data" not in response:
             raise Exception("No top-level data field in gql get status response")
-        
+
         if "infinityStatus" not in response["data"]:
             raise Exception("No infinityStatus field in get status response data")
 
@@ -49,23 +55,28 @@ class System(object):
 
     async def config(self) -> "Config":
         """Fetch the current config of the system"""
-        response = await api.gql_request(get_system_config_query(self.system_id), self.auth)
+        response = await api.gql_request(get_config_query(self.system_id), self.auth)
         # print(json.dumps(response))
         # raise Exception("stopppping")
 
         if "data" not in response:
             raise Exception("No top-level data field in gql get config response")
-        
+
         if "infinityConfig" not in response["data"]:
             raise Exception("No infinityConfig field in get config response data")
 
         config = Config(response["data"]["infinityConfig"])
         self.last_fetched_config = config
         return config
-    
-    async def update_zone_config(self, zone_id: str, hold: str, hold_activity: Activity, otmr: str) -> "Config":
+
+    async def update_zone_config(
+        self, zone_id: str, hold: str, hold_activity: Activity, otmr: str
+    ) -> "Config":
         """Update the specified zone config"""
-        response = await api.gql_request(update_zone_config_query(self.system_id, zone_id, hold, hold_activity, otmr), self.auth)
+        response = await api.gql_request(
+            update_zone_config_query(self.system_id, zone_id, hold_activity, otmr),
+            self.auth,
+        )
 
         print("Before...")
         print(self.last_fetched_config)
@@ -77,6 +88,17 @@ class System(object):
         print("After...")
         print(self.last_fetched_config)
 
+    async def update_zone_activity(
+        self, zone_id: str, activity: Activity, cool_temp: int, heat_temp: int
+    ):
+
+        r = await api.gql_request(
+            update_activity_query(
+                self.system_id, zone_id, activity, cool_temp, heat_temp
+            ),
+            self.auth,
+        )
+        print(r)
 
 
 class User(object):
@@ -93,7 +115,7 @@ class User(object):
 
         if "data" not in response:
             raise Exception("GQL response does not contain top-level data field")
-        
+
         if "user" not in response["data"]:
             raise Exception("GQL response data did not contain user field")
 
@@ -108,9 +130,10 @@ class User(object):
             loc = Location(location)
             for system in location["systems"]:
                 all_systems.append(System(system["profile"], loc, auth))
-        
+
         self.all_systems = all_systems
         return self.all_systems
+
 
 async def systems(auth: Auth) -> list[System]:
     """Fetch list of all systems corresponding to user"""
@@ -119,7 +142,7 @@ async def systems(auth: Auth) -> list[System]:
     # all_systems = user.get_all_systems(auth)
     # for system in all_systems:
     #     print(system)
-    
+
     # raise Exception("test")
 
     return user.get_all_systems(auth)

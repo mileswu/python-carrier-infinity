@@ -14,12 +14,14 @@ async def test_login() -> None:
     with pytest.raises(Exception):
         await Auth.login("", "", client_id)
 
+
 @pytest.mark.asyncio
 async def test_user_systems() -> None:
     """Test getting user's systems information"""
     auth = await Auth.login(username, password, client_id)
 
     await systems(auth)
+
 
 # @pytest.mark.asyncio
 # async def test_get_config() -> None:
@@ -38,6 +40,7 @@ async def test_user_systems() -> None:
 #     # uncomment below to print out the config
 #     # raise Exception("testing config")
 
+
 @pytest.mark.asyncio
 async def test_get_status() -> None:
     """Test getting system's status"""
@@ -55,6 +58,7 @@ async def test_get_status() -> None:
     # uncomment below to print out the status
     # raise Exception("testing status")
 
+
 @pytest.mark.asyncio
 async def test_update_config() -> None:
     """Test getting system's config"""
@@ -67,7 +71,8 @@ async def test_update_config() -> None:
     print("System: " + system.name)
     config = await system.config()
 
-    await system.update_zone_config("1", "off", None, None)
+    await system.update_zone_config("1", "on", "manual", None)
+    await system.update_zone_activity("1", "manual", 70, 60)
 
     # uncomment below for printouts
     # raise Exception("testing config")
