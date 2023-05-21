@@ -14,7 +14,7 @@ def update_zone_config_query(
     zone_id: int,
     hold_activity: str | None,
     hold_until: str | None,
-):
+) -> dict:
     """Generate GraphQL query for updateInfinityZoneConfig"""
 
     if hold_activity:

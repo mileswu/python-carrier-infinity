@@ -14,7 +14,7 @@ class Auth(object):
         self.username = username
         self._access_token = access_token
 
-    def get_access_token(self):
+    def get_access_token(self) -> str:
         """Returns an OAuth 2.0 access token"""
         # TODO: Add foo regarding if token is past expiration time
         return self._access_token
@@ -52,7 +52,7 @@ async def get_code_and_code_verifier(
     client_id: str,
     session_token: str,
     redirect_uri: str,
-) -> tuple(str, str):
+) -> tuple[str, str]:
     """Get short-lived code from redirect location param via code challenge & session token"""
     code_verifier = random_alphanumeric(64)
 
