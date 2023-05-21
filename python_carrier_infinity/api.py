@@ -1,5 +1,4 @@
-"""Authentication and retrieving the list of systems"""
-from __future__ import annotations
+"""Authentication and making GraphQL queries"""
 import base64
 import hashlib
 import secrets
@@ -7,7 +6,7 @@ import string
 import aiohttp
 
 
-class Auth(object):
+class Auth:
     """Represents authentication to the API service"""
 
     def __init__(self, username: str, access_token: str):

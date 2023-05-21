@@ -3,8 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from xml.etree.ElementTree import Element
 import defusedxml.ElementTree as ET
-from . import util
-from .types import Activity, FanSpeed
+from .types import ActivityName, FanSpeed
 
 
 class ZoneStatus(object):
@@ -30,9 +29,9 @@ class ZoneStatus(object):
         return self.data["id"]
 
     @property
-    def current_activity(self) -> Activity:
+    def current_activity(self) -> ActivityName:
         """The currently set activity of the zone"""
-        return Activity(self.data["currentActivity"])
+        return ActivityName(self.data["currentActivity"])
 
     @property
     def current_temperature(self) -> int:

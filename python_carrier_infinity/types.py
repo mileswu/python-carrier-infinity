@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Activity(Enum):
+class ActivityName(Enum):
     """Represents an activity"""
 
     HOME = "home"

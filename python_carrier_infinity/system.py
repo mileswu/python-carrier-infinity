@@ -1,13 +1,11 @@
 """Contains the System class"""
 from xml.etree.ElementTree import Element
 import defusedxml.ElementTree as ET
-from . import util
-from . import api
+from . import api, config
 from .api import Auth
-from .config import Config
 from .location import Location
 from .status import Status
-from .types import Activity
+from .types import ActivityName
 from .gql_schemas import (
     get_user_query,
     get_config_query,
@@ -19,7 +17,7 @@ import json
 import asyncio
 
 
-class System(object):
+class System:
     """Represents a Carrier Infinity system"""
 
     def __init__(self, data: dict, location: Location, auth: api.Auth):
@@ -27,7 +25,7 @@ class System(object):
         self.name = data["name"]
         self.auth = auth
         self.location = location
-        self.last_fetched_config: Config = None
+        self.last_fetched_config: config.System = None
         self.last_fetched_status: Status = None
 
     # for testing
@@ -53,7 +51,7 @@ class System(object):
         self.last_fetched_status = status
         return status
 
-    async def config(self) -> "Config":
+    async def fetch_config(self) -> config.System:
         """Fetch the current config of the system"""
         response = await api.gql_request(get_config_query(self.system_id), self.auth)
         # print(json.dumps(response))
@@ -65,13 +63,13 @@ class System(object):
         if "infinityConfig" not in response["data"]:
             raise Exception("No infinityConfig field in get config response data")
 
-        config = Config(response["data"]["infinityConfig"])
-        self.last_fetched_config = config
-        return config
+        cfg = config.System(response["data"]["infinityConfig"])
+        self.last_fetched_config = cfg
+        return cfg
 
     async def update_zone_config(
-        self, zone_id: str, hold: str, hold_activity: Activity, otmr: str
-    ) -> "Config":
+        self, zone_id: str, hold: str, hold_activity: ActivityName, otmr: str
+    ) -> config.System:
         """Update the specified zone config"""
         response = await api.gql_request(
             update_zone_config_query(self.system_id, zone_id, hold_activity, otmr),
@@ -84,12 +82,12 @@ class System(object):
         """Refresh config information"""
         print("Sleeping before refetching config...")
         await asyncio.sleep(5)
-        await self.config()
+        await self.fetch_config()
         print("After...")
         print(self.last_fetched_config)
 
     async def update_zone_activity(
-        self, zone_id: str, activity: Activity, cool_temp: int, heat_temp: int
+        self, zone_id: str, activity: ActivityName, cool_temp: int, heat_temp: int
     ):
 
         r = await api.gql_request(

@@ -5,7 +5,6 @@ from enum import Enum
 from xml.etree.ElementTree import Element
 import defusedxml.ElementTree as ET
 import dateutil
-from . import util
 from .types import TemperatureUnits
 from .zonestatus import ZoneStatus
 

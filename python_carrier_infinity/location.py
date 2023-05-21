@@ -1,7 +1,6 @@
 """Contains the Location class"""
 
 from xml.etree.ElementTree import Element
-from . import util
 
 
 class Location(object):
