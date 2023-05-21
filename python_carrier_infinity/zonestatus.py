@@ -1,27 +1,10 @@
 """Contains the ZoneStatus class"""
+from __future__ import annotations
 from enum import Enum
 from xml.etree.ElementTree import Element
 import defusedxml.ElementTree as ET
 from . import util
-
-
-class Activity(Enum):
-    """Represents an activity"""
-
-    HOME = "home"
-    AWAY = "away"
-    SLEEP = "sleep"
-    WAKE = "wake"
-    MANUAL = "manual"
-
-
-class FanSpeed(Enum):
-    """Represents the fan speed"""
-
-    OFF = "off"
-    LOW = "low"
-    MED = "med"
-    HIGH = "high"
+from .types import Activity, FanSpeed
 
 
 class ZoneStatus(object):

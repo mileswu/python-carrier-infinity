@@ -1,24 +1,24 @@
 """api.py tests"""
 import pytest
-from python_carrier_infinity import Auth, systems
+from python_carrier_infinity import Auth, login, systems
 from . import username, password, client_id
 
 
 @pytest.mark.asyncio
 async def test_login() -> None:
     """Test valid and invalid logins"""
-    await Auth.login(username, password, client_id)
+    await login(username, password, client_id)
 
     with pytest.raises(Exception):
-        await Auth.login(username, "", client_id)
+        await login(username, "", client_id)
     with pytest.raises(Exception):
-        await Auth.login("", "", client_id)
+        await login("", "", client_id)
 
 
 @pytest.mark.asyncio
 async def test_user_systems() -> None:
     """Test getting user's systems information"""
-    auth = await Auth.login(username, password, client_id)
+    auth = await login(username, password, client_id)
 
     await systems(auth)
 
@@ -44,7 +44,7 @@ async def test_user_systems() -> None:
 @pytest.mark.asyncio
 async def test_get_status() -> None:
     """Test getting system's status"""
-    auth = await Auth.login(username, password, client_id)
+    auth = await login(username, password, client_id)
 
     all_systems = await systems(auth)
 
@@ -62,7 +62,7 @@ async def test_get_status() -> None:
 @pytest.mark.asyncio
 async def test_update_config() -> None:
     """Test getting system's config"""
-    auth = await Auth.login(username, password, client_id)
+    auth = await login(username, password, client_id)
 
     all_systems = await systems(auth)
 

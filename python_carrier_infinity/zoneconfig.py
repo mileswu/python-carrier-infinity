@@ -4,7 +4,7 @@ from xml.etree.ElementTree import Element
 import defusedxml.ElementTree as ET
 from . import util
 from .activityconfig import ActivityConfig
-from .zonestatus import Activity
+from .types import Activity
 
 
 class ZoneConfig(object):
@@ -14,7 +14,12 @@ class ZoneConfig(object):
         self.data = data
 
     def __str__(self) -> str:
-        activities = "\n" + ("\n=======================\n").join(["\t\t" + str(activity) + ": " + str(self.activities[activity]) for activity in self.activities])
+        activities = "\n" + ("\n=======================\n").join(
+            [
+                "\t\t" + str(activity) + ": " + str(self.activities[activity])
+                for activity in self.activities
+            ]
+        )
         return f"""{self.name} Zone Config:
             Hold activity: {self.hold_activity}
             Otmr: {self.otmr}

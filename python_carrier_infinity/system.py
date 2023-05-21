@@ -7,7 +7,7 @@ from .api import Auth
 from .config import Config
 from .location import Location
 from .status import Status
-from .zonestatus import Activity
+from .types import Activity
 from .gql_schemas import (
     get_user_query,
     get_config_query,

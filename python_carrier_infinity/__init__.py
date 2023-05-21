@@ -3,4 +3,4 @@
 # SPDX-License-Identifier: MIT
 from .location import Location
 from .system import System, systems
-from .api import Auth
+from .api import Auth, login

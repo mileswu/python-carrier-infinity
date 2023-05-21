@@ -1,18 +1,13 @@
 """Contains the Status class"""
+from __future__ import annotations
 from datetime import datetime
 from enum import Enum
 from xml.etree.ElementTree import Element
 import defusedxml.ElementTree as ET
 import dateutil
 from . import util
+from .types import TemperatureUnits
 from .zonestatus import ZoneStatus
-
-
-class TemperatureUnits(Enum):
-    """Represents the unit of temperature"""
-
-    CELCIUS = "C"
-    FARENHEIT = "F"
 
 
 class Status(object):

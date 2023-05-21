@@ -3,19 +3,9 @@ from enum import Enum
 from xml.etree.ElementTree import Element
 import defusedxml.ElementTree as ET
 from . import util
-from .status import TemperatureUnits
+from .types import Mode, TemperatureUnits
 from .zoneconfig import ZoneConfig
 import json
-
-
-class Mode(Enum):
-    """Represents the HVAC mode"""
-
-    OFF = "off"
-    COOL = "cool"
-    HEAT = "heat"
-    AUTO = "auto"
-    FAN_ONLY = "fanonly"
 
 
 class Config(object):

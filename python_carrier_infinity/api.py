@@ -1,143 +1,126 @@
 """Authentication and retrieving the list of systems"""
 from __future__ import annotations
-
-import aiohttp
 import base64
-import defusedxml.ElementTree as ET
-import oauthlib.oauth1
-from . import util
+import hashlib
 import json
+import uuid
+import aiohttp
 
 
 class Auth(object):
-    """Represents a username and OAuth 2.0 authentication token"""
-    """Docs: https://openapi.ing.carrier.com/Content/pdf/oauth2-spec.pdf"""
+    """Represents authentication to the API service"""
 
-    def __init__(self, username: str, token: str, session_token: str = "", access_token: str = ""):
+    def __init__(self, username: str, access_token: str):
         self.username = username
-        self.token = token
-        self.session_token = session_token
         self._access_token = access_token
 
     def get_access_token(self):
+        """Returns an OAuth 2.0 access token"""
         # TODO: Add foo regarding if token is past expiration time
         return self._access_token
 
-    @classmethod
-    async def login(cls, username: str, password: str, client_id: str) -> Auth:
-        """Login to the API and return an Auth object"""
 
-        """Step 1: Use login credentials to obtain session token"""
-        headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        }
+async def login(username: str, password: str, client_id: str) -> Auth:
+    """Login to the API and return an Auth object"""
 
-        data = json.dumps({
-            "password": password,
-            "username": username,
-        })
-        response = await _request(
-            "/api/v1/authn", username, data, auth_token=None, headers=headers, base_url="https://sso.carrier.com"
-        )
+    # Reference: https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/#create-the-proof-key-for-code-exchange
 
-        parsed_json = json.loads(response)
-        # print(parsed_json)
+    base_url = "https://sso.carrier.com"
+    headers = {"Accept": "application/json"}
+    async with aiohttp.ClientSession(base_url, headers=headers) as session:
+        # Step 1: Use login credentials to obtain session token
+        async with session.request(
+            "POST",
+            "/api/v1/authn",
+            json={
+                "password": password,
+                "username": username,
+            },
+        ) as response:
+            response_text = await response.text()
+        response_json = json.loads(response_text)
 
-        if "sessionToken" not in parsed_json:
+        if "sessionToken" not in response_json:
             raise Exception("sessionToken missing")
 
-        session_token = parsed_json["sessionToken"]
-        # print(session_token)
+        session_token = response_json["sessionToken"]
 
-        """Step 2: Get short-lived code from redirect location param via code challenge & session token"""
-        # https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/#create-the-proof-key-for-code-exchange
-        import base64
-        import uuid
-        import hashlib
+        # Step 2: Get short-lived code from redirect location param via code challenge & session token
 
-        def uuid4_string():
-            return base64.urlsafe_b64encode(uuid.uuid4().bytes).decode('utf-8').replace('=', '') 
+        code_verifier = (
+            base64.urlsafe_b64encode(uuid.uuid4().bytes)
+            .decode("utf-8")
+            .replace("=", "")
+        )
+        code_verifier *= 3
 
-        code_verifier = uuid4_string() + uuid4_string() + uuid4_string()
-        m = hashlib.sha256()
-        m.update(code_verifier.encode('utf-8'))
-        before_encode_challenge = m.digest()
-        code_challenge = base64.urlsafe_b64encode(before_encode_challenge).decode('utf-8').replace('=', '') # Base64URL-encoded SHA256) hash
+        sha256_hash = hashlib.sha256()
+        sha256_hash.update(code_verifier.encode("utf-8"))
+        code_challenge = (
+            base64.urlsafe_b64encode(sha256_hash.digest())
+            .decode("utf-8")
+            .replace("=", "")
+        )  # Base64 URL-encoded SHA256 hash
 
         nonce = str(uuid.uuid4())
         state = str(uuid.uuid4())
 
-        redirect_uri = 'com.carrier.homeowner:/login'
-        params = {
-            "nonce": nonce,
-            "sessionToken": session_token,
-            "response_type": 'code',
-            "code_challenge_method": 'S256',
-            "scope": 'openid profile offline_access',
-            "code_challenge": code_challenge,
-            "redirect_uri": 'com.carrier.homeowner:/login',
-            "client_id": client_id,
-            "state": state
-        }
+        redirect_uri = "com.carrier.homeowner:/login"
+        async with session.request(
+            "GET",
+            "/oauth2/default/v1/authorize",
+            params={
+                "nonce": nonce,
+                "sessionToken": session_token,
+                "response_type": "code",
+                "code_challenge_method": "S256",
+                "scope": "openid profile offline_access",
+                "code_challenge": code_challenge,
+                "redirect_uri": redirect_uri,
+                "client_id": client_id,
+                "state": state,
+            },
+            allow_redirects=False,
+        ) as response:
+            code = (
+                response.headers["location"]
+                .replace(redirect_uri + "?", "")
+                .split("&")[0]
+                .split("=")[1]
+            )
 
-        # print(params)
+        # Step 3: Use short-lived code to get access token for GraphQL operations"""
 
-        data = None
-        headers = {"Content-Type": "application/x-www-form-urlencoded", "Accept": 'application/json'}
+        async with session.request(
+            "POST",
+            "/oauth2/default/v1/token",
+            data={
+                "grant_type": "authorization_code",
+                "redirect_uri": redirect_uri,
+                "code": code,
+                "code_verifier": code_verifier,
+                "client_id": client_id,
+            },
+        ) as response:
+            response_text = await response.text()
+        response_json = json.loads(response_text)
 
-        redirect_location = await _request(
-            "/oauth2/default/v1/authorize", username, data, auth_token=None, headers=headers, base_url="https://sso.carrier.com", params=params
-        )
-
-        # extract code from query param of the redirect location
-        code = redirect_location.replace(redirect_uri + '?', '').split('&')[0].split('=')[1]
-
-        # print(redirect_location)
-        # print(code)
-
-        """Step 3: Use short-lived code to get access token for graphql operations"""
-
-        data = {
-            "grant_type": 'authorization_code',
-            "redirect_uri": redirect_uri,
-            "code": code,
-            "code_verifier": code_verifier,
-            "client_id": client_id,
-        }
-        headers = {"Content-Type": "application/x-www-form-urlencoded", "Accept": 'application/json'}
-        params = None
-
-        # print(data)
-
-        response = json.loads(await _request("/oauth2/default/v1/token", username, data, auth_token=None, headers=headers, base_url="https://sso.carrier.com"))
-        # print(response)
-
-        if "access_token" not in response:
+        if "access_token" not in response_json:
             raise Exception("Access token was not found / granted")
 
-        access_token = response["access_token"]
-        # print(access_token)
+        access_token = response_json["access_token"]
 
-        return Auth(username, "placeholder", session_token, access_token)
+    return Auth(username, access_token)
 
-
-async def request(url: str, data: str | None, auth: Auth, headers: dict | None = None) -> str:
-    """Make a request to the API."""
-    return await _request(url, auth.username, data, auth.token, headers)
-
-API_URL_BASE = "https://dataservice.infinity.iot.carrier.com"
-CLIENT_KEY = "8j30j19aj103911h"
-CLIENT_SECRET = "0f5ur7d89sjv8d45"
 
 async def gql_request(query: dict, auth: Auth):
     """GraphQL request wrapper"""
     method = "POST"
     headers = {
-        "Authorization": 'Bearer ' + auth.get_access_token(),
-        "Content-Type": 'application/json'
+        "Authorization": "Bearer " + auth.get_access_token(),
+        "Content-Type": "application/json",
     }
-    url = API_URL_BASE + '/graphql'
+    url = "https://dataservice.infinity.iot.carrier.com/graphql"
     data = json.dumps(query)
 
     # print("Making gql request...")
@@ -148,39 +131,3 @@ async def gql_request(query: dict, auth: Auth):
             response_text = await response.text()
             # print(response_text)
             return json.loads(response_text)
-
-
-async def _request(
-    url: str,
-    username: str,
-    data: str | None,
-    auth_token: str | None,
-    headers: dict | None = None,
-    base_url: str = '',
-    params: dict | None = None
-) -> str:
-    """Make a request to the API."""
-
-    if base_url == '':
-        base_url = API_URL_BASE
-    url = base_url + url
-
-    if headers == None:
-        headers = {}
-
-    if data:
-        method = "POST"
-        if "Content-Type" not in headers:
-            headers["Content-Type"] = "application/x-www-form-urlencoded"
-        body = data
-        # print("POST")
-    else:
-        method = "GET"
-        body = None
-
-    async with aiohttp.ClientSession() as session:
-        async with session.request(method, url, headers=headers, data=body, params=params, allow_redirects=False) as response:
-            if response.status == 302:
-                return response.headers["location"]
-            response_text = await response.text()
-            return response_text
