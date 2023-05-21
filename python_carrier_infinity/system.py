@@ -1,4 +1,5 @@
 """Contains the System class"""
+from __future__ import annotations
 from xml.etree.ElementTree import Element
 import defusedxml.ElementTree as ET
 from . import api, config
@@ -68,11 +69,17 @@ class System:
         return cfg
 
     async def update_zone_config(
-        self, zone_id: str, hold: str, hold_activity: ActivityName, otmr: str
+        self,
+        zone_id: str,
+        hold: str,
+        hold_activity: ActivityName,
+        hold_until: str | None,
     ) -> config.System:
         """Update the specified zone config"""
         response = await api.gql_request(
-            update_zone_config_query(self.system_id, zone_id, hold_activity, otmr),
+            update_zone_config_query(
+                self.system_id, zone_id, hold_activity, hold_until
+            ),
             self.auth,
         )
 

@@ -14,16 +14,17 @@ class System:
             Temperature unit: {self.temperature_units}
             HVAC mode: {self.mode}
             Zones:
-                {("************************").join([str(zone) for zone in self.zones])}"""
+                {("************************").join([str(zone) for zone in self.zones.values()])}"""
 
     @property
-    def zones(self) -> list[Zone]:
+    def zones(self) -> dict[str, Zone]:
         """The config of all enabled zones"""
-        zones = []
-        for zone in self.data["zones"]:
-            if zone["enabled"] == "off":
+        zones = {}
+        for zone_data in self.data["zones"]:
+            if zone_data["enabled"] == "off":
                 continue
-            zones.append(Zone(zone))
+            zone = Zone(zone_data)
+            zones[zone.name] = zone
         return zones
 
     @property
@@ -45,15 +46,12 @@ class Zone:
 
     def __str__(self) -> str:
         activities = "\n" + ("\n=======================\n").join(
-            [
-                "\t\t" + str(activity) + ": " + str(self.activities[activity])
-                for activity in self.activities
-            ]
+            ["\t\t" + str(activity) for activity in self.activities.values()]
         )
         return f"""\
             {self.name} Zone Config:
                 Hold activity: {self.hold_activity}
-                Otmr: {self.otmr}
+                Hold until: {self.hold_until}
                 Activities: {activities}
         """
 
@@ -71,18 +69,18 @@ class Zone:
             return None
 
     @property
-    def otmr(self):
+    def hold_until(self) -> str | None:
         """The time by which the hold expires; None if hold is indefinite"""
         return self.data["otmr"]
 
     @property
     def activities(self) -> dict[ActivityName, Activity]:
-        """The configs for each activity type"""
+        """The configs for each activity"""
         activities = {}
 
-        for activity in self.data["activities"]:
-            activity_type = ActivityName(activity["type"])
-            activities[activity_type] = Activity(activity)
+        for activity_data in self.data["activities"]:
+            activity = Activity(activity_data)
+            activities[activity.name] = activity
         return activities
 
 
@@ -90,31 +88,31 @@ class Activity:
     """Represents the activity config"""
 
     def __init__(self, data: dict):
-        self._data = data
+        self.data = data
 
     def __str__(self) -> str:
         return f"""\
-            {self.activity}
+            {self.name}
                 Fan speed: {self.fan_speed}
                 Target heating temperature: {self.target_heating_temperature}
                 Target cooling temperature: {self.target_cooling_temperature}"""
 
     @property
-    def activity(self) -> ActivityName:
-        """The associated activity"""
-        return ActivityName(self._data["type"])
+    def name(self) -> ActivityName:
+        """The activity name"""
+        return ActivityName(self.data["type"])
 
     @property
     def fan_speed(self) -> FanSpeed:
         """The fan speed"""
-        return FanSpeed(self._data["fan"])
+        return FanSpeed(self.data["fan"])
 
     @property
     def target_heating_temperature(self) -> int:
         """The target heating temperature"""
-        return int(self._data["htsp"])
+        return int(self.data["htsp"])
 
     @property
     def target_cooling_temperature(self) -> int:
         """The target cooling temperature"""
-        return int(self._data["clsp"])
+        return int(self.data["clsp"])
