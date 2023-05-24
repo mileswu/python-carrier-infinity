@@ -55,7 +55,7 @@ class System:
         """Update the specified zone config"""
         response = await api.gql_request(
             update_zone_config_query(
-                self.serial, zone_id, hold_activity.name, hold_until
+                self.serial, zone_id, hold_activity.value, hold_until
             ),
             self.auth,
         )
@@ -65,7 +65,9 @@ class System:
         self, zone_id: str, activity: ActivityName, cool_temp: int, heat_temp: int
     ) -> None:
         response = await api.gql_request(
-            update_activity_query(self.serial, zone_id, activity.name, cool_temp, heat_temp),
+            update_activity_query(
+                self.serial, zone_id, activity.value, cool_temp, heat_temp
+            ),
             self.auth,
         )
         print(response)
