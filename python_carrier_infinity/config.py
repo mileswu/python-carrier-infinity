@@ -24,7 +24,7 @@ class System:
             if zone_data["enabled"] == "off":
                 continue
             zone = Zone(zone_data)
-            zones[zone.name] = zone
+            zones[zone.id] = zone
         return zones
 
     @property
@@ -49,11 +49,17 @@ class Zone:
             ["\t\t" + str(activity) for activity in self.activities.values()]
         )
         return f"""\
-            {self.name} Zone Config:
+            Zone Config ID={self.id}:
+                Name: {self.name}
                 Hold activity: {self.hold_activity}
                 Hold until: {self.hold_until}
                 Activities: {activities}
         """
+
+    @property
+    def id(self) -> str:  # pylint: disable=invalid-name
+        """The id of the zone"""
+        return self.data["id"]
 
     @property
     def name(self) -> str:

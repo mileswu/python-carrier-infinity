@@ -81,7 +81,7 @@ class Zone:
 
     def __str__(self) -> str:
         return f"""\
-            {self.id} Zone Status:
+            Zone Status ID={self.id}:
                 Activity: {self.activity}
                 Temperature: {self.temperature}
                 Humidity: {self.relative_humidity}
