@@ -39,7 +39,7 @@ class System:
 
 
 class Zone:
-    """Represents the zone config"""
+    """Represents the config of a zone"""
 
     def __init__(self, data: dict):
         self.data = data
@@ -85,7 +85,7 @@ class Zone:
 
 
 class Activity:
-    """Represents the activity config"""
+    """Represents the config of an activity"""
 
     def __init__(self, data: dict):
         self.data = data

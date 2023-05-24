@@ -2,9 +2,8 @@
 from __future__ import annotations
 from xml.etree.ElementTree import Element
 import defusedxml.ElementTree as ET
-from . import api, config
+from . import api, config, status
 from .api import Auth
-from .status import Status
 from .types import ActivityName
 from .gql_schemas import (
     get_user_query,
@@ -26,7 +25,7 @@ class System:
         self.auth = auth
         self.location = location
         self.last_fetched_config: config.System = None
-        self.last_fetched_status: Status = None
+        self.last_fetched_status: status.System = None
 
     # for testing
     def __str__(self) -> str:
@@ -35,7 +34,7 @@ class System:
         Name: {self.name}
         Location: {self.location}"""
 
-    async def status(self) -> "Status":
+    async def status(self) -> status.System:
         """Fetch current system status"""
         response = await api.gql_request(get_status_query(self.system_id), self.auth)
         # print(json.dumps(response))
@@ -47,9 +46,9 @@ class System:
         if "infinityStatus" not in response["data"]:
             raise Exception("No infinityStatus field in get status response data")
 
-        status = Status(response["data"]["infinityStatus"])
-        self.last_fetched_status = status
-        return status
+        s = status.System(response["data"]["infinityStatus"])
+        self.last_fetched_status = s
+        return s
 
     async def fetch_config(self) -> config.System:
         """Fetch the current config of the system"""
