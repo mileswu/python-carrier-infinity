@@ -11,7 +11,7 @@ QUERY = """mutation updateInfinityZoneConfig($input: InfinityZoneConfigInput!) {
 
 def update_zone_config_query(
     serial: str,
-    zone_id: int,
+    zone_id: str,
     hold_activity: str | None,
     hold_until: str | None,
 ) -> dict:

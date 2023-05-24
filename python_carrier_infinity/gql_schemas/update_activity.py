@@ -9,7 +9,7 @@ QUERY = """mutation updateInfinityZoneActivity($input: InfinityZoneActivityInput
 
 def update_activity_query(
     serial: str,
-    zone_id: int,
+    zone_id: str,
     activity_type: str,
     target_cooling_temperature: int,
     target_heating_temperature: int,

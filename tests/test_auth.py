@@ -1,6 +1,7 @@
 """api.py tests"""
 import pytest
-from python_carrier_infinity import Auth, login, systems
+from python_carrier_infinity import login, systems
+from python_carrier_infinity.types import ActivityName
 from . import username, password, client_id
 
 
@@ -48,7 +49,7 @@ async def test_get_status() -> None:
 
     all_systems = await systems(auth)
 
-    system = all_systems[1]
+    system = all_systems["Bedroom"]
 
     status = await system.status()
 
@@ -66,13 +67,13 @@ async def test_update_config() -> None:
 
     all_systems = await systems(auth)
 
-    system = all_systems[1]
+    system = all_systems["Bedroom"]
 
     print("System: " + system.name)
     config = await system.fetch_config()
 
-    await system.update_zone_config("1", "on", "manual", None)
-    await system.update_zone_activity("1", "manual", 70, 60)
+    await system.update_zone_config("1", "on", ActivityName.MANUAL, None)
+    await system.update_zone_activity("1", ActivityName.MANUAL, 70, 60)
 
     # uncomment below for printouts
     # raise Exception("testing config")

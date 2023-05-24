@@ -1,9 +1,6 @@
 """Contains the System class"""
 from __future__ import annotations
-from xml.etree.ElementTree import Element
-import defusedxml.ElementTree as ET
 from . import api, config, status
-from .api import Auth
 from .types import ActivityName
 from .gql_schemas import (
     get_user_query,
@@ -12,59 +9,41 @@ from .gql_schemas import (
     update_zone_config_query,
     update_activity_query,
 )
-import json
-import asyncio
 
 
 class System:
     """Represents a Carrier Infinity system"""
 
     def __init__(self, data: dict, location: str, auth: api.Auth):
-        self.system_id = data["serial"]
-        self.name = data["name"]
-        self.auth = auth
+        self.data = data
         self.location = location
-        self.last_fetched_config: config.System = None
-        self.last_fetched_status: status.System = None
+        self.auth = auth
 
-    # for testing
+    @property
+    def name(self) -> str:
+        """The name"""
+        return self.data["name"]
+
+    @property
+    def serial(self) -> str:
+        """The serial number"""
+        return self.data["serial"]
+
     def __str__(self) -> str:
-        return f"""=======================================
-        System Id: {self.system_id}
-        Name: {self.name}
-        Location: {self.location}"""
+        return f"""\
+            Name: {self.name}
+            Serial Number: {self.serial}
+            Location: {self.location}"""
 
     async def status(self) -> status.System:
         """Fetch current system status"""
-        response = await api.gql_request(get_status_query(self.system_id), self.auth)
-        # print(json.dumps(response))
-        # raise Exception("stopppping")
-
-        if "data" not in response:
-            raise Exception("No top-level data field in gql get status response")
-
-        if "infinityStatus" not in response["data"]:
-            raise Exception("No infinityStatus field in get status response data")
-
-        s = status.System(response["data"]["infinityStatus"])
-        self.last_fetched_status = s
-        return s
+        response = await api.gql_request(get_status_query(self.serial), self.auth)
+        return status.System(response["data"]["infinityStatus"])
 
     async def fetch_config(self) -> config.System:
-        """Fetch the current config of the system"""
-        response = await api.gql_request(get_config_query(self.system_id), self.auth)
-        # print(json.dumps(response))
-        # raise Exception("stopppping")
-
-        if "data" not in response:
-            raise Exception("No top-level data field in gql get config response")
-
-        if "infinityConfig" not in response["data"]:
-            raise Exception("No infinityConfig field in get config response data")
-
-        cfg = config.System(response["data"]["infinityConfig"])
-        self.last_fetched_config = cfg
-        return cfg
+        """Fetch current system config"""
+        response = await api.gql_request(get_config_query(self.serial), self.auth)
+        return config.System(response["data"]["infinityConfig"])
 
     async def update_zone_config(
         self,
@@ -72,79 +51,32 @@ class System:
         hold: str,
         hold_activity: ActivityName,
         hold_until: str | None,
-    ) -> config.System:
+    ) -> None:
         """Update the specified zone config"""
         response = await api.gql_request(
             update_zone_config_query(
-                self.system_id, zone_id, hold_activity, hold_until
+                self.serial, zone_id, hold_activity.name, hold_until
             ),
             self.auth,
         )
-
-        print("Before...")
-        print(self.last_fetched_config)
-
-        """Refresh config information"""
-        print("Sleeping before refetching config...")
-        await asyncio.sleep(5)
-        await self.fetch_config()
-        print("After...")
-        print(self.last_fetched_config)
+        print(response)
 
     async def update_zone_activity(
         self, zone_id: str, activity: ActivityName, cool_temp: int, heat_temp: int
-    ):
-
-        r = await api.gql_request(
-            update_activity_query(
-                self.system_id, zone_id, activity, cool_temp, heat_temp
-            ),
+    ) -> None:
+        response = await api.gql_request(
+            update_activity_query(self.serial, zone_id, activity.name, cool_temp, heat_temp),
             self.auth,
         )
-        print(r)
+        print(response)
 
 
-class User(object):
-    """Represents a Carrier Infinity user"""
-
-    def __init__(self, data):
-        self.data = data
-        self.all_systems = None
-
-    async def user(auth: Auth) -> "User":
-        """Fetch user information"""
-        response = await api.gql_request(get_user_query(auth.username), auth)
-        # print(response)
-
-        if "data" not in response:
-            raise Exception("GQL response does not contain top-level data field")
-
-        if "user" not in response["data"]:
-            raise Exception("GQL response data did not contain user field")
-
-        return User(response["data"]["user"])
-
-    def get_all_systems(self, auth) -> list[System]:
-        if self.all_systems != None:
-            return self.all_systems
-
-        all_systems = []
-        for location in self.data["locations"]:
-            for system in location["systems"]:
-                all_systems.append(System(system["profile"], location["name"], auth))
-
-        self.all_systems = all_systems
-        return self.all_systems
-
-
-async def systems(auth: Auth) -> list[System]:
-    """Fetch list of all systems corresponding to user"""
-    user = await User.user(auth)
-
-    # all_systems = user.get_all_systems(auth)
-    # for system in all_systems:
-    #     print(system)
-
-    # raise Exception("test")
-
-    return user.get_all_systems(auth)
+async def systems(auth: api.Auth) -> dict[str, System]:
+    """Fetch list of systems"""
+    response = await api.gql_request(get_user_query(auth.username), auth)
+    systems_dict = {}
+    for location in response["data"]["user"]["locations"]:
+        for system_data in location["systems"]:
+            system = System(system_data["profile"], location["name"], auth)
+            systems_dict[system.name] = system
+    return systems_dict
