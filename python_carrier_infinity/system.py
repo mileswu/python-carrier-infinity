@@ -4,7 +4,6 @@ from xml.etree.ElementTree import Element
 import defusedxml.ElementTree as ET
 from . import api, config
 from .api import Auth
-from .location import Location
 from .status import Status
 from .types import ActivityName
 from .gql_schemas import (
@@ -21,7 +20,7 @@ import asyncio
 class System:
     """Represents a Carrier Infinity system"""
 
-    def __init__(self, data: dict, location: Location, auth: api.Auth):
+    def __init__(self, data: dict, location: str, auth: api.Auth):
         self.system_id = data["serial"]
         self.name = data["name"]
         self.auth = auth
@@ -34,7 +33,7 @@ class System:
         return f"""=======================================
         System Id: {self.system_id}
         Name: {self.name}
-        Location: {str(self.location)}"""
+        Location: {self.location}"""
 
     async def status(self) -> "Status":
         """Fetch current system status"""
@@ -132,9 +131,8 @@ class User(object):
 
         all_systems = []
         for location in self.data["locations"]:
-            loc = Location(location)
             for system in location["systems"]:
-                all_systems.append(System(system["profile"], loc, auth))
+                all_systems.append(System(system["profile"], location["name"], auth))
 
         self.all_systems = all_systems
         return self.all_systems
