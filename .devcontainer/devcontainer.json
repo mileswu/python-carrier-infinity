@@ -16,7 +16,7 @@
 	// "forwardPorts": [],
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "pip install /workspaces/python-carrier-infinity",
+	"postCreateCommand": "pip install --editable /workspaces/python-carrier-infinity",
 
 	// Configure tool-specific properties.
 	// "customizations": {},
