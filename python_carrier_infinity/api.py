@@ -118,12 +118,13 @@ async def get_access_token(
     return response_json["access_token"]
 
 
-async def login(username: str, password: str, client_id: str) -> Auth:
+async def login(username: str, password: str) -> Auth:
     """Login to the API and return an Auth object"""
 
     # Reference: https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/#create-the-proof-key-for-code-exchange # pylint: disable=line-too-long
 
     base_url = "https://sso.carrier.com"
+    client_id = "0oa1ce7hwjuZbfOMB4x7"
     redirect_uri = "com.carrier.homeowner:/login"
     headers = {"Accept": "application/json"}
     async with aiohttp.ClientSession(base_url, headers=headers) as session:

@@ -2,24 +2,24 @@
 import pytest
 from python_carrier_infinity import login, systems
 from python_carrier_infinity.types import ActivityName
-from . import username, password, client_id
+from . import username, password
 
 
 @pytest.mark.asyncio
 async def test_login() -> None:
     """Test valid and invalid logins"""
-    await login(username, password, client_id)
+    await login(username, password)
 
     with pytest.raises(Exception):
-        await login(username, "", client_id)
+        await login(username, "")
     with pytest.raises(Exception):
-        await login("", "", client_id)
+        await login("", "")
 
 
 @pytest.mark.asyncio
 async def test_user_systems() -> None:
     """Test getting user's systems information"""
-    auth = await login(username, password, client_id)
+    auth = await login(username, password)
 
     await systems(auth)
 
@@ -27,7 +27,7 @@ async def test_user_systems() -> None:
 # @pytest.mark.asyncio
 # async def test_get_config() -> None:
 #     """Test getting system's config"""
-#     auth = await Auth.login(username, password, client_id)
+#     auth = await Auth.login(username, password)
 
 #     all_systems = await systems(auth)
 
@@ -45,7 +45,7 @@ async def test_user_systems() -> None:
 @pytest.mark.asyncio
 async def test_get_status() -> None:
     """Test getting system's status"""
-    auth = await login(username, password, client_id)
+    auth = await login(username, password)
 
     all_systems = await systems(auth)
 
@@ -63,7 +63,7 @@ async def test_get_status() -> None:
 @pytest.mark.asyncio
 async def test_update_config() -> None:
     """Test getting system's config"""
-    auth = await login(username, password, client_id)
+    auth = await login(username, password)
 
     all_systems = await systems(auth)
 

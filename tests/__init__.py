@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: MIT
 
 try:
-    from .credentials import username, password, client_id
+    from .credentials import username, password
 except ImportError as exc:
     raise Exception(
-        "In order to run the tests, you must create a file named 'credentials.py' containing a 'username', 'password' and 'client_id' variable."
+        "In order to run the tests, you must create a file named 'credentials.py' containing 'username' and 'password' variables."
     ) from exc
