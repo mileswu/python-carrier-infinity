@@ -42,7 +42,7 @@ class System:
         response = await api.gql_request(get_status_query(self.serial), self.auth)
         return status.System(response["data"]["infinityStatus"])
 
-    async def config(self) -> config.System:
+    async def fetch_config(self) -> config.System:
         """Fetch current system config"""
         response = await api.gql_request(get_config_query(self.serial), self.auth)
         return config.System(response["data"]["infinityConfig"])
