@@ -1,5 +1,6 @@
 """Contains the System class"""
 from __future__ import annotations
+from textwrap import dedent
 from . import api, config, status
 from .types import ActivityName
 from .gql_schemas import (
@@ -30,10 +31,11 @@ class System:
         return self.data["serial"]
 
     def __str__(self) -> str:
-        return f"""\
-            Name: {self.name}
-            Serial Number: {self.serial}
-            Location: {self.location}"""
+        return dedent(
+            f"""\
+                Name: {self.name}
+                Serial Number: {self.serial}
+                Location: {self.location}""")
 
     async def status(self) -> status.System:
         """Fetch current system status"""
