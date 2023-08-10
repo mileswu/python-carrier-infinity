@@ -19,7 +19,7 @@ class System:
             f"""\
                 Timestamp: {str(self.timestamp)}
                 Mode: {self.mode}
-                Temperature Units: {self.temperature_units}
+                Temperature units: {self.temperature_units}
                 Outside temperature: {self.outside_temperature}
                 Current operation: {self.current_operation}
                 Current airflow: {self.airflow}

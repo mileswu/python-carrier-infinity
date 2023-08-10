@@ -1,5 +1,6 @@
 """Accessing and changing the config"""
 from __future__ import annotations
+from textwrap import dedent, indent
 from .types import ActivityName, FanSpeed, Mode, TemperatureUnits
 
 
@@ -10,11 +11,13 @@ class System:
         self.data = data
 
     def __str__(self) -> str:
-        return f"""\
-            Temperature unit: {self.temperature_units}
-            HVAC mode: {self.mode}
-            Zones:
-                {("************************").join([str(zone) for zone in self.zones.values()])}"""
+        zones = "\n\n".join([str(zone) for zone in self.zones.values()])
+        return dedent(
+            f"""\
+                Temperature units: {self.temperature_units}
+                HVAC mode: {self.mode}
+                Zones:""") \
+            + "\n" + indent(zones, "  ")
 
     @property
     def zones(self) -> dict[str, Zone]:
@@ -45,16 +48,15 @@ class Zone:
         self.data = data
 
     def __str__(self) -> str:
-        activities = "\n" + ("\n=======================\n").join(
-            ["\t\t" + str(activity) for activity in self.activities.values()]
-        )
-        return f"""\
-            Zone Config ID={self.id}:
+        activities = "\n\n".join([str(activity) for activity in self.activities.values()])
+        return dedent(
+            f"""\
+                ID: {self.id}
                 Name: {self.name}
                 Hold activity: {self.hold_activity}
                 Hold until: {self.hold_until}
-                Activities: {activities}
-        """
+                Activities:""") \
+        + "\n" + indent(activities, "  ")
 
     @property
     def id(self) -> str:  # pylint: disable=invalid-name
@@ -97,11 +99,12 @@ class Activity:
         self.data = data
 
     def __str__(self) -> str:
-        return f"""\
-            {self.name}
+        return dedent(
+            f"""\
+                {self.name}
                 Fan speed: {self.fan_speed}
                 Target heating temperature: {self.target_heating_temperature}
-                Target cooling temperature: {self.target_cooling_temperature}"""
+                Target cooling temperature: {self.target_cooling_temperature}""")
 
     @property
     def name(self) -> ActivityName:

@@ -18,3 +18,11 @@ async def test_fetch_status() -> None:
     systems = await get_systems(auth)
     status = await list(systems.values())[0].get_status()
     print(str(status))
+
+@pytest.mark.asyncio
+async def test_fetch_config() -> None:
+    """Test fetching system config"""
+    auth = await login(username, password)
+    systems = await get_systems(auth)
+    config = await list(systems.values())[0].get_config()
+    print(str(config))
