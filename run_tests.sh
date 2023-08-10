@@ -1,4 +1,4 @@
 #!/bin/sh
 
 mypy .
-pytest -rP
+pytest -rP --cov=python_carrier_infinity
