@@ -1,20 +1,20 @@
 """system.py tests"""
 import pytest
-import python_carrier_infinity
+from python_carrier_infinity import login, get_systems
 from . import username, password
 
 @pytest.mark.asyncio
-async def test_systems() -> None:
+async def test_fetch_systems() -> None:
     """Test fetching systems"""
-    auth = await python_carrier_infinity.login(username, password)
-    systems = await python_carrier_infinity.systems(auth)
+    auth = await login(username, password)
+    systems = await get_systems(auth)
     for system in systems.values():
         print(str(system))
 
 @pytest.mark.asyncio
 async def test_fetch_status() -> None:
     """Test fetching system status"""
-    auth = await python_carrier_infinity.login(username, password)
-    systems = await python_carrier_infinity.systems(auth)
-    status = await list(systems.values())[0].fetch_status()
+    auth = await login(username, password)
+    systems = await get_systems(auth)
+    status = await list(systems.values())[0].get_status()
     print(str(status))

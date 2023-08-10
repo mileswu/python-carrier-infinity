@@ -37,12 +37,12 @@ class System:
                 Serial Number: {self.serial}
                 Location: {self.location}""")
 
-    async def fetch_status(self) -> status.System:
+    async def get_status(self) -> status.System:
         """Fetch current system status"""
         response = await api.gql_request(get_status_query(self.serial), self.auth)
         return status.System(response["data"]["infinityStatus"])
 
-    async def fetch_config(self) -> config.System:
+    async def get_config(self) -> config.System:
         """Fetch current system config"""
         response = await api.gql_request(get_config_query(self.serial), self.auth)
         return config.System(response["data"]["infinityConfig"])
@@ -75,7 +75,7 @@ class System:
         print(response)
 
 
-async def systems(auth: api.Auth) -> dict[str, System]:
+async def get_systems(auth: api.Auth) -> dict[str, System]:
     """Fetch list of systems"""
     response = await api.gql_request(get_user_query(auth.username), auth)
     systems_dict = {}
