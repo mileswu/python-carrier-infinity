@@ -1,5 +1,6 @@
 """Accessing the current status"""
 from __future__ import annotations
+from textwrap import dedent, indent
 from datetime import datetime
 import dateutil
 import dateutil.parser
@@ -13,17 +14,19 @@ class System:
         self.data = data
 
     def __str__(self) -> str:
-        return f"""System Status:
-            Timestamp: {str(self.timestamp)}
-            Mode: {self.mode}
-            Temperature Units: {self.temperature_units}
-            Outside temperature: {self.outside_temperature}
-            Current operation: {self.current_operation}
-            Current airflow: {self.airflow}
-            Humidifier active: {self.humidifier_active}
-            Zones:
-                {("************************").join([str(zone) for zone in self.zones.values()])}"""
-
+        zones = "\n\n".join([str(zone) for zone in self.zones.values()])
+        return dedent(
+            f"""\
+                Timestamp: {str(self.timestamp)}
+                Mode: {self.mode}
+                Temperature Units: {self.temperature_units}
+                Outside temperature: {self.outside_temperature}
+                Current operation: {self.current_operation}
+                Current airflow: {self.airflow}
+                Humidifier active: {self.humidifier_active}
+                Zones:""") \
+        + "\n" + indent(zones, "  ")
+    
     @property
     def zones(self) -> dict[str, Zone]:
         """The status of all enabled zones"""
@@ -80,14 +83,15 @@ class Zone:
         self.data = data
 
     def __str__(self) -> str:
-        return f"""\
-            Zone Status ID={self.id}:
+        return dedent(
+            f"""\
+                ID: {self.id}
                 Activity: {self.activity}
                 Temperature: {self.temperature}
                 Humidity: {self.relative_humidity}
                 Fan speed: {self.fan_speed}
                 Target heating temperature: {self.target_heating_temperature}
-                Target cooling temperature: {self.target_cooling_temperature}"""
+                Target cooling temperature: {self.target_cooling_temperature}""")
 
     @property
     def id(self) -> str:  # pylint: disable=invalid-name

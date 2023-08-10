@@ -37,7 +37,7 @@ class System:
                 Serial Number: {self.serial}
                 Location: {self.location}""")
 
-    async def status(self) -> status.System:
+    async def fetch_status(self) -> status.System:
         """Fetch current system status"""
         response = await api.gql_request(get_status_query(self.serial), self.auth)
         return status.System(response["data"]["infinityStatus"])
