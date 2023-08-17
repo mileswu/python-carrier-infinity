@@ -1,7 +1,11 @@
 """system.py tests"""
+import time
 import pytest
 from python_carrier_infinity import login, get_systems
+from python_carrier_infinity.types import ActivityName
 from . import username, password
+
+SLEEP_DURATION_AFTER_CHANGE = 5.0
 
 @pytest.mark.asyncio
 async def test_fetch_systems() -> None:
@@ -26,3 +30,26 @@ async def test_fetch_config() -> None:
     systems = await get_systems(auth)
     config = await list(systems.values())[0].get_config()
     print(str(config))
+
+@pytest.mark.asyncio
+async def test_set_zone_activity_hold() -> None:
+    auth = await login(username, password)
+    systems = await get_systems(auth)
+    system = list(systems.values())[0]
+    config = await system.get_config()
+    zone = list(config.zones.values())[0]
+
+    hold_activity = zone.hold_activity
+    hold_until = zone.hold_until
+
+    async def test(new_hold_activity:ActivityName, new_hold_until:str|None) -> None:
+        await system.set_zone_activity_hold(zone.id, new_hold_activity, new_hold_until)
+        time.sleep(SLEEP_DURATION_AFTER_CHANGE)
+        new_config = await system.get_config()
+        assert new_config.zones[zone.id].hold_activity == new_hold_activity
+        assert new_config.zones[zone.id].hold_until == new_hold_until
+
+    await test(ActivityName.AWAY, None)
+    await test(ActivityName.SLEEP, "22:30")
+
+    await system.set_zone_activity_hold(zone.id, hold_activity, hold_until)

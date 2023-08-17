@@ -47,33 +47,31 @@ class System:
         response = await api.gql_request(get_config_query(self.serial), self.auth)
         return config.System(response["data"]["infinityConfig"])
 
-    async def update_zone_config(
+    async def set_zone_activity_hold(
         self,
         zone_id: str,
-        hold: str,
-        hold_activity: ActivityName,
+        hold_activity: ActivityName | None,
         hold_until: str | None,
     ) -> None:
-        """Update the specified zone config"""
-        response = await api.gql_request(
+        """Set the activity hold of a zone"""
+        hold_activity_string = hold_activity.value if hold_activity else None
+        await api.gql_request(
             update_zone_config_query(
-                self.serial, zone_id, hold_activity.value, hold_until
+                self.serial, zone_id, hold_activity_string, hold_until
             ),
             self.auth,
         )
-        print(response)
-
-    async def update_zone_activity(
+    
+    async def set_zone_activity_temp(
         self, zone_id: str, activity: ActivityName, cool_temp: int, heat_temp: int
     ) -> None:
-        response = await api.gql_request(
+        """Set the target temperatures of an activity for a given zone"""
+        await api.gql_request(
             update_activity_query(
                 self.serial, zone_id, activity.value, cool_temp, heat_temp
             ),
             self.auth,
         )
-        print(response)
-
 
 async def get_systems(auth: api.Auth) -> dict[str, System]:
     """Fetch list of systems"""
