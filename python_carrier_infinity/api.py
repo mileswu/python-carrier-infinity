@@ -11,7 +11,7 @@ AUTH_CLIENT_ID = "0oa1ce7hwjuZbfOMB4x7"
 AUTH_REDIRECT_URI = "com.carrier.homeowner:/login"
 
 
-def create_sso_http_session():
+def create_sso_http_session() -> aiohttp.ClientSession:
     base_url = "https://sso.carrier.com"
     headers = {"Accept": "application/json"}
     return aiohttp.ClientSession(base_url, headers=headers)
@@ -22,11 +22,13 @@ class Auth:
 
     def __init__(self, username: str):
         self.username = username
-        self._access_token = None
-        self._refresh_token = None
-        self._expiry_time = None
+        self._access_token: str | None = None
+        self._refresh_token: str | None = None
+        self._expiry_time: datetime | None = None
 
-    async def _update_token(self, session, extra_data):
+    async def _update_token(
+        self, session: aiohttp.ClientSession, extra_data: dict[str, str]
+    ) -> None:
         current_time = datetime.now()
 
         async with session.request(
@@ -46,11 +48,18 @@ class Auth:
             seconds=response_json["expires_in"]
         )
 
-    def force_expiration_for_test(self):
+    def force_expiration_for_test(self) -> None:
         self._expiry_time = datetime.now()
 
     async def get_access_token(self) -> str:
         """Returns an OAuth 2.0 access token"""
+        if (
+            self._access_token is None
+            or self._refresh_token is None
+            or self._expiry_time is None
+        ):
+            raise Exception("_update_token must be called first")
+
         if datetime.now() >= self._expiry_time:
             extra_data = {
                 "grant_type": "refresh_token",
