@@ -1,23 +1,63 @@
 """Authentication and making GraphQL queries"""
+from __future__ import annotations
 import base64
+from datetime import datetime, timedelta
 import hashlib
 import secrets
 import string
 import aiohttp
 
+AUTH_CLIENT_ID = "0oa1ce7hwjuZbfOMB4x7"
+AUTH_REDIRECT_URI = "com.carrier.homeowner:/login"
+
+def create_sso_http_session():
+    base_url = "https://sso.carrier.com"
+    headers = {"Accept": "application/json"}
+    return aiohttp.ClientSession(base_url, headers=headers)
 
 class Auth:
     """Represents authentication to the API service"""
 
-    def __init__(self, username: str, access_token: str):
+    def __init__(self, username: str):
         self.username = username
-        self._access_token = access_token
+        self._access_token = None
+        self._refresh_token = None
+        self._expiry_time = None
 
-    def get_access_token(self) -> str:
+    async def _update_token(self, session, extra_data):
+        current_time = datetime.now()
+
+        async with session.request(
+            "POST",
+            "/oauth2/default/v1/token",
+            data={
+                "client_id": AUTH_CLIENT_ID,
+                "redirect_uri": AUTH_REDIRECT_URI
+            } | extra_data,
+        ) as response:
+            response_json = await response.json()
+        
+        if "access_token" not in response_json:
+            raise Exception("Access token was not found / granted")
+                
+        self._access_token = response_json["access_token"]
+        self._refresh_token = response_json["refresh_token"]
+        self._expiry_time = current_time + timedelta(seconds=response_json["expires_in"])
+
+    def force_expiration_for_test(self):
+        self._expiry_time = datetime.now()
+
+    async def get_access_token(self) -> str:
         """Returns an OAuth 2.0 access token"""
-        # TODO: Add foo regarding if token is past expiration time
-        return self._access_token
+        if datetime.now() >= self._expiry_time:
+            extra_data = {
+                "grant_type": "refresh_token",
+                "refresh_token": self._refresh_token
+            }
+            async with create_sso_http_session() as session:
+                await self._update_token(session, extra_data)
 
+        return self._access_token
 
 def random_alphanumeric(length: int) -> str:
     """Generate random string"""
@@ -48,9 +88,7 @@ async def get_session_token(
 
 async def get_code_and_code_verifier(
     session: aiohttp.ClientSession,
-    client_id: str,
     session_token: str,
-    redirect_uri: str,
 ) -> tuple[str, str]:
     """Get short-lived code from redirect location param via code challenge & session token"""
     code_verifier = random_alphanumeric(64)
@@ -75,75 +113,57 @@ async def get_code_and_code_verifier(
             "code_challenge_method": "S256",
             "scope": "openid profile offline_access",
             "code_challenge": code_challenge,
-            "redirect_uri": redirect_uri,
-            "client_id": client_id,
+            "redirect_uri": AUTH_REDIRECT_URI,
+            "client_id": AUTH_CLIENT_ID,
             "state": state,
         },
         allow_redirects=False,
     ) as response:
         code = (
             response.headers["location"]
-            .replace(redirect_uri + "?", "")
+            .replace(AUTH_REDIRECT_URI + "?", "")
             .split("&")[0]
             .split("=")[1]
         )
     return (code, code_verifier)
 
+async def get_access_and_refresh_token(
+        username: str,
+        session: aiohttp.ClientSession,
+        code: str,
+        code_verifier: str,
+    ) -> Auth:
+        """Use short-lived code to get access and refresh token"""
 
-async def get_access_token(
-    session: aiohttp.ClientSession,
-    client_id: str,
-    code: str,
-    code_verifier: str,
-    redirect_uri: str,
-) -> str:
-    """Use short-lived code to get access token for GraphQL operations"""
-
-    async with session.request(
-        "POST",
-        "/oauth2/default/v1/token",
-        data={
-            "grant_type": "authorization_code",
-            "redirect_uri": redirect_uri,
-            "code": code,
-            "code_verifier": code_verifier,
-            "client_id": client_id,
-        },
-    ) as response:
-        response_json = await response.json()
-
-    if "access_token" not in response_json:
-        raise Exception("Access token was not found / granted")
-
-    return response_json["access_token"]
-
+        extra_data = {
+                "grant_type": "authorization_code",
+                "code": code,
+                "code_verifier": code_verifier,
+            }
+        auth = Auth(username)
+        await auth._update_token(session, extra_data)
+        return auth
 
 async def login(username: str, password: str) -> Auth:
     """Login to the API and return an Auth object"""
 
     # Reference: https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/#create-the-proof-key-for-code-exchange # pylint: disable=line-too-long
 
-    base_url = "https://sso.carrier.com"
-    client_id = "0oa1ce7hwjuZbfOMB4x7"
-    redirect_uri = "com.carrier.homeowner:/login"
-    headers = {"Accept": "application/json"}
-    async with aiohttp.ClientSession(base_url, headers=headers) as session:
+    async with create_sso_http_session() as session:
         session_token = await get_session_token(session, username, password)
         code, code_verifier = await get_code_and_code_verifier(
-            session, client_id, session_token, redirect_uri
+            session, session_token
         )
-        access_token = await get_access_token(
-            session, client_id, code, code_verifier, redirect_uri
+        return await get_access_and_refresh_token(
+            username, session, code, code_verifier
         )
-
-    return Auth(username, access_token)
-
 
 async def gql_request(query: dict, auth: Auth) -> dict:
     """Make a GraphQL request"""
     url = "https://dataservice.infinity.iot.carrier.com/graphql"
+    access_token = await auth.get_access_token()
     headers = {
-        "Authorization": "Bearer " + auth.get_access_token(),
+        "Authorization": "Bearer " + access_token
     }
 
     async with aiohttp.ClientSession() as session:
