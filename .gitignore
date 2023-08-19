@@ -1,5 +1,6 @@
 *.pyc
 .coverage
 .DS_Store
+.pypirc
 dist/
 tests/credentials.py
