@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022-present @mileswu <mileswu@users.noreply.github.com>
+#
+# SPDX-License-Identifier: MIT
+
 """api.py tests"""
 import pytest
 from python_carrier_infinity import login

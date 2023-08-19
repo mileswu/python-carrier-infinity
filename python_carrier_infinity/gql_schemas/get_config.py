@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022-present @mileswu <mileswu@users.noreply.github.com>
+#
+# SPDX-License-Identifier: MIT
+
 """getInfinityConfig GraphQL schema"""
 
 OPERATION = "getInfinityConfig"

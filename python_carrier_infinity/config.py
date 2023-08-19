@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022-present @mileswu <mileswu@users.noreply.github.com>
+#
+# SPDX-License-Identifier: MIT
+
 """Accessing and changing the config"""
 from __future__ import annotations
 from textwrap import dedent, indent
