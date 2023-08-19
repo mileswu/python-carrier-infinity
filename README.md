@@ -2,6 +2,7 @@
 
 [![PyPI - Version](https://img.shields.io/pypi/v/python-carrier-infinity.svg)](https://pypi.org/project/python-carrier-infinity)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/python-carrier-infinity.svg)](https://pypi.org/project/python-carrier-infinity)
+[![Coverage Status](https://coveralls.io/repos/github/mileswu/python-carrier-infinity/badge.svg)](https://coveralls.io/github/mileswu/python-carrier-infinity)
 
 A Python library for accessing Carrier Infinity thermostats
 
