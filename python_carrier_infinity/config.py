@@ -12,12 +12,16 @@ class System:
 
     def __str__(self) -> str:
         zones = "\n\n".join([str(zone) for zone in self.zones.values()])
-        return dedent(
-            f"""\
+        return (
+            dedent(
+                f"""\
                 Temperature units: {self.temperature_units}
                 HVAC mode: {self.mode}
-                Zones:""") \
-            + "\n" + indent(zones, "  ")
+                Zones:"""
+            )
+            + "\n"
+            + indent(zones, "  ")
+        )
 
     @property
     def zones(self) -> dict[str, Zone]:
@@ -48,15 +52,21 @@ class Zone:
         self.data = data
 
     def __str__(self) -> str:
-        activities = "\n\n".join([str(activity) for activity in self.activities.values()])
-        return dedent(
-            f"""\
+        activities = "\n\n".join(
+            [str(activity) for activity in self.activities.values()]
+        )
+        return (
+            dedent(
+                f"""\
                 ID: {self.id}
                 Name: {self.name}
                 Hold activity: {self.hold_activity}
                 Hold until: {self.hold_until}
-                Activities:""") \
-        + "\n" + indent(activities, "  ")
+                Activities:"""
+            )
+            + "\n"
+            + indent(activities, "  ")
+        )
 
     @property
     def id(self) -> str:  # pylint: disable=invalid-name
@@ -104,7 +114,8 @@ class Activity:
                 {self.name}
                 Fan speed: {self.fan_speed}
                 Target heating temperature: {self.target_heating_temperature}
-                Target cooling temperature: {self.target_cooling_temperature}""")
+                Target cooling temperature: {self.target_cooling_temperature}"""
+        )
 
     @property
     def name(self) -> ActivityName:

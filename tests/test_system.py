@@ -7,6 +7,7 @@ from . import username, password
 
 SLEEP_DURATION_AFTER_CHANGE = 5.0
 
+
 @pytest.mark.asyncio
 async def test_fetch_systems() -> None:
     """Test fetching systems"""
@@ -14,6 +15,7 @@ async def test_fetch_systems() -> None:
     systems = await get_systems(auth)
     for system in systems.values():
         print(str(system))
+
 
 @pytest.mark.asyncio
 async def test_fetch_status() -> None:
@@ -23,6 +25,7 @@ async def test_fetch_status() -> None:
     status = await list(systems.values())[0].get_status()
     print(str(status))
 
+
 @pytest.mark.asyncio
 async def test_fetch_config() -> None:
     """Test fetching system config"""
@@ -30,6 +33,7 @@ async def test_fetch_config() -> None:
     systems = await get_systems(auth)
     config = await list(systems.values())[0].get_config()
     print(str(config))
+
 
 @pytest.mark.asyncio
 async def test_set_zone_activity_hold() -> None:
@@ -42,7 +46,7 @@ async def test_set_zone_activity_hold() -> None:
     hold_activity = zone.hold_activity
     hold_until = zone.hold_until
 
-    async def test(new_hold_activity:ActivityName, new_hold_until:str|None) -> None:
+    async def test(new_hold_activity: ActivityName, new_hold_until: str | None) -> None:
         await system.set_zone_activity_hold(zone.id, new_hold_activity, new_hold_until)
         time.sleep(SLEEP_DURATION_AFTER_CHANGE)
         new_config = await system.get_config()
@@ -54,6 +58,7 @@ async def test_set_zone_activity_hold() -> None:
 
     await system.set_zone_activity_hold(zone.id, hold_activity, hold_until)
     time.sleep(SLEEP_DURATION_AFTER_CHANGE)
+
 
 @pytest.mark.asyncio
 async def test_set_zone_activity_temp() -> None:
@@ -69,11 +74,19 @@ async def test_set_zone_activity_temp() -> None:
 
     new_cool_temp = 90
     new_heat_temp = 50
-    await system.set_zone_activity_temp(zone.id, activity.name, new_cool_temp, new_heat_temp)
+    await system.set_zone_activity_temp(
+        zone.id, activity.name, new_cool_temp, new_heat_temp
+    )
     time.sleep(SLEEP_DURATION_AFTER_CHANGE)
     new_config = await system.get_config()
-    assert new_config.zones[zone.id].activities[activity.name].target_cooling_temperature == new_cool_temp
-    assert new_config.zones[zone.id].activities[activity.name].target_heating_temperature == new_heat_temp
+    assert (
+        new_config.zones[zone.id].activities[activity.name].target_cooling_temperature
+        == new_cool_temp
+    )
+    assert (
+        new_config.zones[zone.id].activities[activity.name].target_heating_temperature
+        == new_heat_temp
+    )
 
     await system.set_zone_activity_temp(zone.id, activity.name, cool_temp, heat_temp)
     time.sleep(SLEEP_DURATION_AFTER_CHANGE)

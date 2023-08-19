@@ -15,8 +15,9 @@ class System:
 
     def __str__(self) -> str:
         zones = "\n\n".join([str(zone) for zone in self.zones.values()])
-        return dedent(
-            f"""\
+        return (
+            dedent(
+                f"""\
                 Timestamp: {str(self.timestamp)}
                 Mode: {self.mode}
                 Temperature units: {self.temperature_units}
@@ -24,9 +25,12 @@ class System:
                 Current operation: {self.current_operation}
                 Current airflow: {self.airflow}
                 Humidifier active: {self.humidifier_active}
-                Zones:""") \
-        + "\n" + indent(zones, "  ")
-    
+                Zones:"""
+            )
+            + "\n"
+            + indent(zones, "  ")
+        )
+
     @property
     def zones(self) -> dict[str, Zone]:
         """The status of all enabled zones"""
@@ -91,7 +95,8 @@ class Zone:
                 Humidity: {self.relative_humidity}
                 Fan speed: {self.fan_speed}
                 Target heating temperature: {self.target_heating_temperature}
-                Target cooling temperature: {self.target_cooling_temperature}""")
+                Target cooling temperature: {self.target_cooling_temperature}"""
+        )
 
     @property
     def id(self) -> str:  # pylint: disable=invalid-name

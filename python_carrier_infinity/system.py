@@ -35,7 +35,8 @@ class System:
             f"""\
                 Name: {self.name}
                 Serial Number: {self.serial}
-                Location: {self.location}""")
+                Location: {self.location}"""
+        )
 
     async def get_status(self) -> status.System:
         """Fetch current system status"""
@@ -61,7 +62,7 @@ class System:
             ),
             self.auth,
         )
-    
+
     async def set_zone_activity_temp(
         self, zone_id: str, activity: ActivityName, cool_temp: int, heat_temp: int
     ) -> None:
@@ -72,6 +73,7 @@ class System:
             ),
             self.auth,
         )
+
 
 async def get_systems(auth: api.Auth) -> dict[str, System]:
     """Fetch list of systems"""
