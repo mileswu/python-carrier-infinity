@@ -3,7 +3,7 @@ import time
 import pytest
 from python_carrier_infinity import login, get_systems
 from python_carrier_infinity.types import ActivityName
-from . import username, password
+from . import USERNAME, PASSWORD
 
 SLEEP_DURATION_AFTER_CHANGE = 5.0
 
@@ -11,7 +11,7 @@ SLEEP_DURATION_AFTER_CHANGE = 5.0
 @pytest.mark.asyncio
 async def test_fetch_systems() -> None:
     """Test fetching systems"""
-    auth = await login(username, password)
+    auth = await login(USERNAME, PASSWORD)
     systems = await get_systems(auth)
     for system in systems.values():
         print(str(system))
@@ -19,8 +19,8 @@ async def test_fetch_systems() -> None:
 
 @pytest.mark.asyncio
 async def test_fetch_status() -> None:
-    """Test fetching system status"""
-    auth = await login(username, password)
+    """Test fetching status"""
+    auth = await login(USERNAME, PASSWORD)
     systems = await get_systems(auth)
     status = await list(systems.values())[0].get_status()
     print(str(status))
@@ -28,8 +28,8 @@ async def test_fetch_status() -> None:
 
 @pytest.mark.asyncio
 async def test_fetch_config() -> None:
-    """Test fetching system config"""
-    auth = await login(username, password)
+    """Test fetching config"""
+    auth = await login(USERNAME, PASSWORD)
     systems = await get_systems(auth)
     config = await list(systems.values())[0].get_config()
     print(str(config))
@@ -37,7 +37,8 @@ async def test_fetch_config() -> None:
 
 @pytest.mark.asyncio
 async def test_set_zone_activity_hold() -> None:
-    auth = await login(username, password)
+    """Test setting the activity hold"""
+    auth = await login(USERNAME, PASSWORD)
     systems = await get_systems(auth)
     system = list(systems.values())[0]
     config = await system.get_config()
@@ -62,7 +63,8 @@ async def test_set_zone_activity_hold() -> None:
 
 @pytest.mark.asyncio
 async def test_set_zone_activity_temp() -> None:
-    auth = await login(username, password)
+    """Test setting the activity target temperature"""
+    auth = await login(USERNAME, PASSWORD)
     systems = await get_systems(auth)
     system = list(systems.values())[0]
     config = await system.get_config()
@@ -77,6 +79,7 @@ async def test_set_zone_activity_temp() -> None:
     await system.set_zone_activity_temp(
         zone.id, activity.name, new_cool_temp, new_heat_temp
     )
+
     time.sleep(SLEEP_DURATION_AFTER_CHANGE)
     new_config = await system.get_config()
     assert (

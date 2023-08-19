@@ -2,9 +2,12 @@
 #
 # SPDX-License-Identifier: MIT
 
+# pylint: disable=missing-module-docstring
+
 try:
-    from .credentials import username, password
+    from .credentials import USERNAME, PASSWORD
 except ImportError as exc:
-    raise Exception(
-        "In order to run the tests, you must create a file named 'credentials.py' containing 'username' and 'password' variables."
+    raise RuntimeError(
+        "In order to run the tests, you must create a file named 'credentials.py'"
+        + " containing 'USERNAME' and 'PASSWORD' variables."
     ) from exc

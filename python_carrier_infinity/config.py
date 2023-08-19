@@ -83,8 +83,7 @@ class Zone:
         """The currently held activity"""
         if self.data["hold"] == "on":
             return ActivityName(self.data["holdActivity"])
-        else:
-            return None
+        return None
 
     @property
     def hold_until(self) -> str | None:
