@@ -8,7 +8,7 @@ from textwrap import dedent, indent
 from datetime import datetime
 import dateutil
 import dateutil.parser
-from .types import ActivityName, FanSpeed, Mode, TemperatureUnits
+from .types import ActivityName, FanSpeed, TemperatureUnits
 
 
 class System:
@@ -23,10 +23,10 @@ class System:
             dedent(
                 f"""\
                 Timestamp: {str(self.timestamp)}
-                Mode: {self.mode}
                 Temperature units: {self.temperature_units}
                 Outside temperature: {self.outside_temperature}
-                Current operation: {self.current_operation}
+                Current indoor operation: {self.current_indoor_operation}
+                Current outdoor operation: {self.current_outdoor_operation}
                 Current airflow: {self.airflow}
                 Humidifier active: {self.humidifier_active}
                 Zones:"""
@@ -52,11 +52,6 @@ class System:
         return dateutil.parser.isoparse(self.data["utcTime"])
 
     @property
-    def mode(self) -> Mode:
-        """The HVAC mode"""
-        return Mode(self.data["mode"])
-
-    @property
     def outside_temperature(self) -> int:
         """The outside air temperature"""
         return int(self.data["oat"])
@@ -67,9 +62,14 @@ class System:
         return TemperatureUnits(self.data["cfgem"])
 
     @property
-    def current_operation(self) -> str:
-        """The current operation in progress"""
+    def current_indoor_operation(self) -> str:
+        """The current indoor operation in progress"""
         return self.data["idu"]["opstat"]
+
+    @property
+    def current_outdoor_operation(self) -> str:
+        """The current outdoor operation in progress"""
+        return self.data["odu"]["opstat"]
 
     @property
     def humidifier_active(self) -> bool:
