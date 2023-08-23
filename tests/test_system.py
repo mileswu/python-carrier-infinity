@@ -6,7 +6,7 @@
 import time
 import pytest
 from python_carrier_infinity import login, get_systems
-from python_carrier_infinity.types import ActivityName
+from python_carrier_infinity.types import ActivityName, FanSpeed, Mode
 from . import USERNAME, PASSWORD
 
 SLEEP_DURATION_AFTER_CHANGE = 5.0
@@ -96,4 +96,48 @@ async def test_set_zone_activity_temp() -> None:
     )
 
     await system.set_zone_activity_temp(zone.id, activity.name, cool_temp, heat_temp)
+    time.sleep(SLEEP_DURATION_AFTER_CHANGE)
+
+
+@pytest.mark.asyncio
+async def test_set_zone_activity_fan() -> None:
+    """Test setting the activity fan speed"""
+    auth = await login(USERNAME, PASSWORD)
+    systems = await get_systems(auth)
+    system = list(systems.values())[0]
+    config = await system.get_config()
+    zone = list(config.zones.values())[0]
+    activity = zone.activities[ActivityName.MANUAL]
+
+    original_fan_speed = activity.fan_speed
+    new_fan_speed = FanSpeed.HIGH
+
+    await system.set_zone_activity_fan(zone.id, activity.name, new_fan_speed)
+    time.sleep(SLEEP_DURATION_AFTER_CHANGE)
+    new_config = await system.get_config()
+    assert (
+        new_config.zones[zone.id].activities[activity.name].fan_speed == new_fan_speed
+    )
+
+    await system.set_zone_activity_fan(zone.id, activity.name, original_fan_speed)
+    time.sleep(SLEEP_DURATION_AFTER_CHANGE)
+
+
+@pytest.mark.asyncio
+async def test_set_mode() -> None:
+    """Test setting the mode"""
+    auth = await login(USERNAME, PASSWORD)
+    systems = await get_systems(auth)
+    system = list(systems.values())[0]
+    config = await system.get_config()
+
+    original_mode = config.mode
+    new_mode = Mode.OFF
+
+    await system.set_mode(new_mode)
+    time.sleep(SLEEP_DURATION_AFTER_CHANGE)
+    new_config = await system.get_config()
+    assert new_config.mode == new_mode
+
+    await system.set_mode(original_mode)
     time.sleep(SLEEP_DURATION_AFTER_CHANGE)
