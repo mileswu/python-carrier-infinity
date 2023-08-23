@@ -6,13 +6,14 @@
 from __future__ import annotations
 from textwrap import dedent
 from . import api, config, status
-from .types import ActivityName
+from .types import ActivityName, FanSpeed
 from .gql_schemas import (
     get_user_query,
     get_config_query,
     get_status_query,
     update_zone_config_query,
-    update_activity_query,
+    update_activity_fan_query,
+    update_activity_temp_query,
 )
 
 
@@ -67,12 +68,21 @@ class System:
             self.auth,
         )
 
+    async def set_zone_activity_fan(
+        self, zone_id: str, activity: ActivityName, fan: FanSpeed
+    ) -> None:
+        """Set the fan speed of an activity for a given zone"""
+        await api.gql_request(
+            update_activity_fan_query(self.serial, zone_id, activity.value, fan.value),
+            self.auth,
+        )
+
     async def set_zone_activity_temp(
         self, zone_id: str, activity: ActivityName, cool_temp: int, heat_temp: int
     ) -> None:
         """Set the target temperatures of an activity for a given zone"""
         await api.gql_request(
-            update_activity_query(
+            update_activity_temp_query(
                 self.serial, zone_id, activity.value, cool_temp, heat_temp
             ),
             self.auth,
