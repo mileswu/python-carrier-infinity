@@ -6,11 +6,12 @@
 from __future__ import annotations
 from textwrap import dedent
 from . import api, config, status
-from .types import ActivityName, FanSpeed
+from .types import ActivityName, FanSpeed, Mode
 from .gql_schemas import (
     get_user_query,
     get_config_query,
     get_status_query,
+    update_config_mode_query,
     update_zone_config_query,
     update_activity_fan_query,
     update_activity_temp_query,
@@ -85,6 +86,13 @@ class System:
             update_activity_temp_query(
                 self.serial, zone_id, activity.value, cool_temp, heat_temp
             ),
+            self.auth,
+        )
+
+    async def set_mode(self, mode: Mode) -> None:
+        """Set the mode"""
+        await api.gql_request(
+            update_config_mode_query(self.serial, mode.value),
             self.auth,
         )
 

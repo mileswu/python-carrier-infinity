@@ -6,6 +6,7 @@
 from .get_user import get_user_query
 from .get_status import get_status_query
 from .get_config import get_config_query
+from .update_config import update_config_mode_query
 from .update_zone_config import update_zone_config_query
 from .update_activity import (
     update_activity_fan_query,
